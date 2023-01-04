@@ -1,0 +1,237 @@
+\begin{table}[htpb]
+    \centering
+    \caption{Some short unfamiliar terminologies}
+    {\small
+    \begin{tabular}{p{8em}p{26em}}
+        \toprule
+        Terminology & Brief definition \\
+        \midrule
+        \textbf{big data} vs \textbf{wide data} & $N\gg{D}$ vs $N\ll{D}$ \\
+        (improve) \textbf{sample efficiency} & (reduce) the number of labeled examples needed to get good performance \\
+        \textbf{language modeling} & creating unconditional generative models of text sequences (such as GPTChat)\\
+        \textbf{word stemming} & replacing words with their base form\\
+        \textbf{OOV} & out of vocabulary, novel terms occur in test set\\
+        \textbf{mode of a dist.} & $\boldsymbol{x}^*=\mathrm{argmax}_{\boldsymbol{x}}p(\boldsymbol{x})$ \\
+        \textbf{multimodal} & mode of the dist. is not unique (mode may be not a good summary)\\
+        \textbf{inference} & the act of passing from sample data to generalizations, usually with calculated degrees of certainty\\
+        \textbf{likelihood} & the function of parameters or the given conditions with fixed observations\\
+
+        \bottomrule
+    \end{tabular}}
+    \label{tab:newtermch1}
+\end{table}
+
+
+\section{Introduction}
+\begin{quote}
+    \citep{pml1Book} -- Chapter 1.
+\end{quote}
+
+\subsection{Supervise Learning}
+\textbf{Probabilistic perspective} ML: treat all unknown quantities as r.v.s.
+endowed probability distribution describing a weighted set of the possible values.
+
+\begin{note}
+    Why is the probabilistic perspective adopted?
+    \begin{enumerate}
+        \item decision making under uncertainty and
+        \item general language by other fields of science and engineering.
+    \end{enumerate}
+\end{note}
+
+
+\textbf{Empirical risk} is the function of parameters $\boldsymbol{\theta}$, 
+where the term \textit{empirical} implies using sample average to substitute population-level expectation 
+(real data distribution is usually unknown), 
+and the loss function $\ell(\cdot)$ can be specified according to real-world condition.
+The model fitting is to find a \underline{minimizer} $\hat{\boldsymbol{\theta}}$ of $\mathcal{L}(\boldsymbol{\theta})$.
+\begin{gather}
+    \mathcal{L}(\boldsymbol{\theta})=\frac{1}{N}\sum_{n=1}^N
+    {\ell(y_n,f(\boldsymbol{x}_n;\boldsymbol{\theta}))}
+\end{gather}
+
+\textbf{Conditional probability distribution} is adopted to capture the uncertainty.
+\begin{gather}
+    p(y|\boldsymbol{x};\boldsymbol{\theta})
+    =f_y(\boldsymbol{x};\boldsymbol{\theta}):\mathcal{X}\to\mathcal{Y}
+\end{gather}
+
+\textbf{Deep neural networks} (vs linear\&polynomial regression) do 
+nonlinear feature extraction automatically with stacked multiple hidden layers $\phi(\cdot;\boldsymbol{V})$
+with $\boldsymbol{V}=[\boldsymbol{\theta}_1,\cdots,\boldsymbol{\theta}_{L-1}]$ 
+and output the prediction with the final layer with $\boldsymbol{w}=\boldsymbol{\theta}_L$.
+\begin{gather}
+    f(\boldsymbol{x};\boldsymbol{w},\boldsymbol{V})=\boldsymbol{w}^T\phi(\boldsymbol{x};\boldsymbol{V})
+\end{gather}
+
+\begin{quote}\textit{
+    Supervised learning is essentially just ``glorified curve fitting''.
+}\end{quote}
+
+\subsection{Unsupervised learning}
+
+\textit{Unconditional} vs \textit{conditional}\unsure{
+$\boldsymbol{y}$ follows mixed model with additional uncertainty of unknown co-variates
+introduced by transformation from $\boldsymbol{x}$
+}
+models of \textit{unsupervised} vs \textit{supervised} learning.
+\begin{gather}
+    p(\boldsymbol{x})~\text{vs}~p(\boldsymbol{y}|\boldsymbol{x})
+\end{gather}
+
+% \begin{note}
+    Strategies to find such model $p(\boldsymbol{x})$ generating data:
+    \begin{enumerate}
+        \item clustering by defining the similarity (distance in same space) among data points; 
+        \item modeling the low-dimensional representation (Equation (\ref{eq:latent})) 
+        of unobserved latent factors;
+        \item self-supervised learning: 
+        build proxy supervised tasks from unlabeled data, and 
+        learn useful representation from the data themselves.
+    \end{enumerate}
+% \end{note}
+
+\begin{example}
+    \textbf{Modeling low-dimensional latent representation}\\
+    \begin{gather}
+        p(\boldsymbol{x}_n|\boldsymbol{z}_n;\boldsymbol{\theta})
+        =N(\boldsymbol{x}_n|f(\boldsymbol{z}_n;\boldsymbol{\theta}),\boldsymbol{\Sigma})
+        ~~~\boldsymbol{z}_n\in\mathbb{R}^K,~K\ll{D}
+        \label{eq:latent}
+    \end{gather}
+    \begin{itemize}
+        \item \textbf{Factor analysis}: 
+        $f(\boldsymbol{z}_n;\boldsymbol{\theta})=\boldsymbol{W}\boldsymbol{z}_n+\boldsymbol{\mu}$
+        \item \textbf{PCA}:
+        $f(\boldsymbol{z}_n;\boldsymbol{\theta})=\boldsymbol{W}\boldsymbol{z}_n+\boldsymbol{\mu}$ and 
+        $\boldsymbol{\Sigma}=\sigma^2\boldsymbol{I}$
+        \item \textbf{Variational autoencoder}:
+        $f(\cdot)$ neural network (nonlinear) and
+        $\boldsymbol{\Sigma}=\sigma^2\boldsymbol{I}$
+    \end{itemize}
+\end{example}
+
+Principles of evaluating unsupervised learning
+\begin{enumerate}
+    \item \textit{data compression as lossless as possible}:
+    treat it as density estimation\unsure{
+    recall the knowledge learned from \textit{Statistical Inference}}
+    and see if a model captures the typical and useful patterns in the data;
+    \item \textit{sample efficiency} of the learned representation: improvement in downstream application, 
+    say, supervised learning tasks (easy to evaluate);
+    \item \textit{interpretability}: discover the true underlying structure behind some dataset.
+\end{enumerate}
+
+\subsection{Reinforcement Learning}
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.7\textwidth]{figs/rl.png}
+    \caption{Reinforcement Learning\protect\footnotemark[1]}
+    \label{fig:rldiag}
+\end{figure}
+\footnotetext[1]{
+\hyperlink{https://towardsdatascience.com/reinforcement-learning-101-e24b50e1d292}
+{https://towardsdatascience.com/reinforcement-learning-101-e24b50e1d292}}
+
+% \begin{quote}
+%     Some key terms that describe the basic elements of an RL problem are\footnotemark[1]:
+%     \begin{itemize}
+%         \item Environment: Physical world in which the agent operates
+%         \item State: Current situation of the agent
+%         \item Reward: Feedback from the environment
+%         \item Policy: Method to map agent’s state to actions
+%         \item Value: Future reward that an agent would receive by taking an action in a particular state
+%     \end{itemize}
+% \end{quote}
+
+Compared with supervised learning, the reward in RL may only be given occasionally and summarily
+(e.g. if the agent eventually reaches a desired state after a path of actions)
+
+\subsection{Data}
+
+Common datasets (Benchmark):
+\begin{itemize}
+    \item small image datasets: MNIST [1,28,28] (extend to EMNIST, fashion-MNIST), CIFAR-10 [3,32,32];
+    \item large image datasets: ImageNet [3,256,256];
+    \item text datasets for text classification: IMDB movie review dataset;
+    \item text datasets for machine translation: documents from multilingual organizations 
+    (e.g. Canadian parliament and EU), WMT dataset;
+    \item seq2seq tasks (e.g. document summarication and question answering): ?.
+\end{itemize}
+
+\textbf{TF-IDF}: term frequency-inverse document frequency.\unsure{
+weighted BoW that reduce the importance of uninformative terms
+}
+TF$_{ij}$ is the frequency of term $i$ in document $j$, and 
+IDF$_i\triangleq{\frac{N}{1+\text{DF}_i}}$, 
+where $DF_i$ is the number of documents with term $i$.
+\begin{gather}
+    \text{TF-IDF}_{ij}=\log{\text{TF}_{ij}+1}\times\text{IDF}_i
+\end{gather}
+
+\textbf{Word embeddings}: 
+\unsure{
+Usually self-supervised models were adopted to build a pre-trained word embeddings 
+based on large-scale contexts.
+}\unsure{
+The embeddings with similar meanings be often close in some metric space.}
+map sparse and vocabulary-length (high-dimensional) vectors to 
+dense and low-dimensional ones (embeddings).
+
+Strategies to deal with OOV:
+\begin{enumerate}
+    \item replace all novel words with $\mathtt{UNK}$;
+    \item byte-pair encoding: finer-grained subword structure embedding;
+\end{enumerate}
+
+Let $\boldsymbol{M}\in\mathbb{I}^{N\times{D}}$ indicates the missing status of feature $\boldsymbol{X}$:
+$M_{nd}=1$ if $X_{nd}$ is missing and let $\boldsymbol{X}_v~(\boldsymbol{M}_v=\boldsymbol{0})$ and 
+$\boldsymbol{X}_h~(\boldsymbol{M}_h=\boldsymbol{1})$ 
+are visible and missing parts of features, respectively. 
+The outcome labels $\mathbf{Y}$ are full observed.\unsure{
+Missing data handling is a complex topic,
+also important in \textit{clinical trial designing}, 
+and will be discussed later and further.
+}
+\begin{itemize}
+    \item \textbf{missing completely at random} (MCAR): 
+    $p(\boldsymbol{M}|\boldsymbol{X}_v,\boldsymbol{X}_h,\boldsymbol{Y})=p(\boldsymbol{M})$,
+    the missingness does not depend on the hidden/observed features;
+    \item \textbf{missing at random} (MAR):
+    $p(\boldsymbol{M}|\boldsymbol{X}_v,\boldsymbol{X}_h,\boldsymbol{Y})
+    =p(\boldsymbol{M}|\boldsymbol{X}_v,\boldsymbol{Y})$,
+    the missingness does not depend on the hidden features but may depend on the visible features;
+    \item \textbf{not missing at random} (NMAR): otherwise
+\end{itemize}
+
+\begin{note}
+    In the MCAR/MAR case, the missingness mechanism can be ignored since missingness is
+    independent with the unobserved features. 
+    And this book always makes the MAR assumption.
+\end{note}
+
+\section{Foundations}
+\begin{quote}
+    \citep{pml1Book} -- Chapter 2-8.
+\end{quote}
+
+\subsection{Probability: Univariable and Multivariable Models}
+
+Types of uncertainty:
+\begin{enumerate}
+    \item \textbf{model uncertainty}: or epistemic uncertainty,
+    caused by our ignorance of the underlying hidden causes or mechanism generating the data;
+    \item \textbf{data uncertainty}: or aleatoric uncertainty,
+    caused by intrinsic variability (the true model generating data randomly).
+\end{enumerate}
+
+
+\subsection{Statistics}
+
+\subsection{Decision Theory}
+
+\subsection{Information Theory}
+
+\subsection{Linear Algebra}
+
+\subsection{Optimization}
