@@ -1,0 +1,57 @@
+\begin{table}[htpb]
+    \centering
+    \caption{Some short unfamiliar terminologies}
+    {\footnotesize
+    Put brief definitions new or that I learnt before here for quickly reviewing 
+and concepts new and needed more discussion into the sections below.\\
+}
+    {\small
+    \begin{tabular}{rp{32em}}
+        \toprule
+        Terminology & Brief definition \\
+        \midrule
+        \textbf{big data} vs \textbf{wide data} & $N\gg{D}$ vs $N\ll{D}$ \\
+        ($\uparrow$) \textbf{sample efficiency} & ($\downarrow$) the number of labeled examples needed to get good performance \\
+        \textbf{language modeling} & creating unconditional generative models of text sequences (such as GPTChat)\\
+        \textbf{word stemming} & replacing words with their base form\\
+        \textbf{OOV} & out of vocabulary, novel terms occur in test set\\
+        \textbf{mode of a dist.} & $\bm{x}^*=\mathrm{argmax}_{\bm{x}}p(\bm{x})$ \\
+        \textbf{multimodal} & mode of the dist. is not unique (mode may be not a good summary)\\
+        \textbf{inference} & the act of passing from sample data to generalizations, usually with calculated degrees of certainty\\
+        \textbf{likelihood} & the function of parameters or the given conditions with fixed observations\\
+        \textbf{softplus} function & $\sigma_+(a)=\log{(1+e^a)}$\\
+        \textbf{Dirac delta function} & $\lim_{\delta\to{0}}{\mathcal{N}(y|\mu,\sigma^2)}\to\delta(y-\mu)=\delta_\mu(y)$, used for sampling from a dist.\\
+        \textbf{mixture model} & a convex combination of some (simple) distributions, viewed as special hierarchical model\\
+        \textbf{directed acyclic graph} & DAG, aka. Bayesian network\\
+        \textbf{language model} & a sequence of r.v's with probability $p(\bm{y}_{1:T})=\prod_{t=1}^T{p(y_t|\bm{y}_{1:t-1})}$\\
+        \textbf{Markov model} & language model with first order Markov condition $p(\bm{y}_{1:T})=p(y_1)\prod_{t=2}^T{p(y_t|y_{t-1})}$\\
+        \textbf{($M+1$)-gram model} & language model with $M^{\text{th}}$ order Markov condition $p(\bm{y}_{1:T})=p(\bm{y}_{1:M})\prod_{t=M+1}^T{p(y_t|\bm{y}_{t-M:t-1})}$\\
+        \textbf{parameter tying} & cases that same parameters are shared by multiple variables, e.g. time-invariant assumption\\
+        \textbf{empirical distribution} & distribution of the data itself and free from any parameter, $p_\mathcal{D}(\bm{y})\triangleq\frac{1}{N}\sum_{n=1}^N\delta(\bm{y}-\bm{y}_n)$\\
+        \textbf{add-one smoothing} & $\hat{\theta}=\frac{N_1+1}{N_1+N_0+2}$ to avoid zero count problem\\
+        \textbf{shrinkage estimate} & $\hat{\bm{\Sigma}}_{\text{MAP}}(i,j)=\left\{\begin{array}{ll}
+            \hat{\bm{\Sigma}}_{\text{MLE}}(i,j) & i=j \\
+            (1-\lambda)\hat{\bm{\Sigma}}_{\text{MLE}}(i,j) & i\neq j
+        \end{array}\right.$ to avoid singular solution\\
+        \textbf{weight decay} & $\ell_2$ regularization (or ridge regression in linear regression)\\
+        \textbf{early stop} & stop optimization process once detecting signs of overfitting, such as validation loss increasing\\
+        \textbf{credible interval} & Bayesian stat., (\uline{any}) 
+        $C_\alpha(\mathcal{D})=(l,u):P(l\leq\theta\leq u|\mathcal{D})=1-\alpha$ \\
+        \textbf{central interval} & (CI) in credible interval, 
+        $l=F_{\theta|\mathcal{D}}^{-1}(\frac{\alpha}{2})$,
+        $u=F_{\theta|\mathcal{D}}^{-1}(1-\frac{\alpha}{2})$\\
+        \textbf{highest posterior density} region & (HPD) in credible interval, 
+        $\Omega(q)=\{\theta:p(\theta|\mathcal{D})>q\}$, 
+        $\Omega(p^*)$ such that $\int_{\Omega(p^*)}{p(\theta|\mathcal{D})}d\theta=1-\alpha$ \\
+        \textbf{highest density interval} & (HDI) HPD region in unimodal distribution, $(l,u)=\inf_{(l',u')}|C_\alpha(\mathcal{D})|$, narrowest credible interval \\
+        \textbf{confidence interval} & (CI) Frequentist stat. for one single parameter, 
+        \uline{any} $100(1-\alpha)\%$ CI $I(\Tilde{\mathcal{D}})=(l(\Tilde{\mathcal{D}})),u(\Tilde{\mathcal{D}})$ 
+        such that $P(\theta^*\in I(\Tilde{\mathcal{D}})|I(\Tilde{\mathcal{D}})\sum\theta^*)=1-\alpha$ \\
+        \textbf{plugin approx.} & $p(\bm{y}|\bm{x},\mathcal{D})
+        = \int{p(\bm{y}|\bm{x},\bm{\theta})p(\bm{\theta}|\mathcal{D})}d\bm{\theta}
+        \approx \int{p(\bm{y}|\bm{x},\bm{\theta})\delta(\bm{\theta}-\hat{\bm{\theta}})}d\bm{\theta}
+        = p(\bm{y}|\bm{x},\hat{\bm{\theta}})$ (currently universal operation)\\
+        \bottomrule
+    \end{tabular}}
+    \label{tab:newtermch1}
+\end{table}

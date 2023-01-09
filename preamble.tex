@@ -6,8 +6,12 @@
 % \usepackage{enumerate}
 \usepackage{natbib}
 \usepackage{booktabs}
-\usepackage{enumitem}
+\usepackage[shortlabels]{enumitem}
 \setlist{nolistsep}
+\usepackage{framed}
+\usepackage{ulem}
+\usepackage{bm}
+
 % \setlist[1]{itemsep=-5pt,parskip=0pt}
 
 
@@ -35,6 +39,8 @@
 \usepackage{tikzsymbols}
 \renewcommand\qedsymbol{$\Laughey$}
 
+\usepackage{geometry}
+
 \def\class{article}
 
 
@@ -50,6 +56,18 @@
 \let\impliedby\Leftarrow
 \let\iff\Leftrightarrow
 \let\epsilon\varepsilon
+
+% KL divergence
+\DeclarePairedDelimiterX{\infdivx}[2]{(}{)}{%
+  #1\;\delimsize\|\;#2%
+}
+\newcommand{\infdiv}{D_{\mathbb{KL}}\infdivx}
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+
+% argmin max
+\DeclareMathOperator*{\argmax}{\arg\!max}
+\DeclareMathOperator*{\argmin}{\arg\!min}
+
 
 %%%%%%%%%%%%
 %  Paragraph  %
@@ -382,6 +400,7 @@
 
 \usepackage{xargs}
 \usepackage[colorinlistoftodos,textsize=footnotesize]{todonotes}
+% \setlength{\marginparwidth}{4cm}
 
 \makeatletter
 
