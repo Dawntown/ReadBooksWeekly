@@ -1,0 +1,36 @@
+% \subsection{Decision Theory}
+
+% \subsection{Information Theory}
+
+
+\setcounter{subsection}{6}
+\subsection{Linear Algebra}
+
+\begin{table}[htpb]
+    \centering
+    \begin{tabular}{rp{32em}}
+        \toprule
+        Terminology & Brief definition\\
+        \midrule
+        \textbf{span} of vectors &  $\text{span}(\{\bm{x}_1,\cdots,\bm{x}_n\})\triangleq\left\{\bm{v}:\bm{v}=\sum_{i=1}^n\alpha_i\bm{x}_i,\alpha_i\in\mathbb{R}\right\}$\\
+        \textbf{range} of a matrix & $\text{range}(\mathbf{A})\triangleq\{\bm{v}=\mathbf{A}\bm{x}\}$, column space \\ 
+        \textbf{nullspace} of a matrix & $\text{nullspace}(\mathbf{A})\triangleq{\{\bm{x}:\mathbf{A}\bm{x}=\bm{0}\}}$\\
+        \textbf{projection} & $\text{Proj}(\bm{y};\{\bm{x}_1,\cdots,\bm{x}_n\})=\argmin_{\bm{v}\in\text{span}(\{\bm{x}_1,\cdots,\bm{x}_n\})}\|\bm{y}=\bm{v}\|_2$ 
+        or if $\mathbf{A}$ full rank in columns $\text{Proj}(\bm{y};\mathbf{A})=\mathbf{A}(\mathbf{A}^T\mathbf{A})^{-1}\mathbf{A}^T\bm{y}$ \\
+        \textbf{max-norm} and \textbf{0-norm} & $\|\bm{x}\|_\infty=\max|x_i|$ and $\|\bm{x}\|_0=\sum_{i=1}^n\mathbb{I}(x_i\neq 0)$\\
+        \bottomrule
+    \end{tabular}
+    \caption{Gleanings of linear algebra concepts}
+    \label{tab:linalgc}
+\end{table}
+
+\textbf{Induced norm} of a matrix:\unsure{
+recall that the \textbf{norm of a vector} is a measure of the vector's length or magnitude
+and singular value of a matrix is }
+The maximum response of a linear function by unite-norm input
+\begin{gather}
+    \|\mathbf{A}\|_p=\max_{\bm{x}\neq\bm{0}}\frac{\|\mathbf{A}\bm{x}\|_p}{\|\bm{x}\|_p}=\max_{\|\bm{x}\|_p=1}\|\mathbf{A}\bm{x}\|_p
+\end{gather}
+
+
+% \subsection{Optimization}
