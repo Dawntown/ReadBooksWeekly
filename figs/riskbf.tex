@@ -1,0 +1,18 @@
+\begin{figure}[htpb]
+    \centering
+    \begin{tikzpicture}[->,>=stealth',auto,node distance=3.5em,thick,show background rectangle]
+    \tikzstyle{every node}=[font=\small,scale=0.9]
+      \node[](anchor){};
+      \node[left = of anchor]       (loss)  {$\ell(\theta,\delta(\mathcal{D}))$};
+      \node[above = of anchor]          (bayes) {$\rho(\mathcal{D})=\mathbb{E}_{\Theta|\mathcal{D}}\ell(\theta,\delta(\mathcal{D}))$};
+      \node[below = of anchor]         (freq)  {$r(\theta)=\mathbb{E}_{\mathcal{D}|\theta}\ell(\theta,\delta(\mathcal{D}))$};
+      \node[right = of anchor]         (risk)  {$R(\delta)=\mathbb{E}_{\mathcal{D},\Theta}\ell(\Theta,\delta(\mathcal{D}))$};
+      
+      \draw[->] (loss.east)  --node[below]{Bayesian}     (bayes.south);
+      \draw[->] (loss.east)  --node[above]{Frequentist}  (freq.north);
+      \draw[->] (bayes.south) -- (risk.west);
+      \draw[->] (freq.north)  -- (risk.west);
+    \end{tikzpicture}
+    \caption{risk from Bayesian and Frequentist perspective}
+    \label{fig:riskbf}
+\end{figure}

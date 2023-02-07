@@ -293,17 +293,19 @@ when the status of each node is (discrete) categorical distribution.
 In Markov chain model, 
 $p(y_t|y_{t-1})$ is called \textbf{transition function/kernel} (or \textbf{state transition matrix} in the case of discrete status) and is \textbf{stationary/time-invariant} under the assumption that $p(y_t|y_{t-1})$ is the same for all time steps.
 
-\begin{figure}[hptb]
-    \centering
-    \includegraphics[width=0.5\textwidth]{figs/mixgaussian.pdf}
-    \caption{A Gaussian mixture model represented as a graphical model}
-    \label{fig:maxgaussian}
-\end{figure}
+% \begin{figure}[hptb]
+%     \centering
+%     \includegraphics[width=0.5\textwidth]{figs/mixgaussian.pdf}
+%     \caption{A Gaussian mixture model represented as a graphical model}
+%     \label{fig:mixgaussian}
+% \end{figure}
+
+\input{figs/mixgaussian.tex}
 
 \begin{example}
     \textbf{GMM represented as a graphical model}\\
     Viewing all variables, including model's parameters and obverations, 
-    follow a generative story like Figure (\ref{fig:maxgaussian})
+    follow a generative story like Figure (\ref{fig:mixgaussian})
     {\small\begin{gather}
         p(\bm{y}_{1:N},\bm{z}_{1:N},\bm{\theta})
         = p(\bm{\pi})
@@ -378,17 +380,19 @@ then $\mathcal{L}(\bm{\theta})=\text{NLL}(\bm{\theta})$ and ERM is MLE).\unsure{
     
 % \end{enumerate}
 
-\begin{figure}[hptb]
-    \centering
-    \includegraphics[width=0.5\textwidth]{figs/lossfunc.png}
-    \caption{Loss functions for \uline{binary classifiers}}
-    {\footnotesize Horizontal axis: $z=yf(\bm{x};\bm{\theta})$. \\
-    0-1 loss: $\mathbb{I}(z<0)$;
-    Hinge loss: $\max\{0,1-z\}$;
-    Log-loss: $\log_2{(1+e^{-z})}$;
-    Exp-loss: $e^{-z}$.}
-    \label{fig:lossfunc}
-\end{figure}
+% \begin{figure}[hptb]
+%     \centering
+%     \includegraphics[width=0.5\textwidth]{figs/lossfunc.png}
+%     \caption{Loss functions for \uline{binary classifiers}}
+%     {\footnotesize Horizontal axis: $z=yf(\bm{x};\bm{\theta})$. \\
+%     0-1 loss: $\mathbb{I}(z<0)$;
+%     Hinge loss: $\max\{0,1-z\}$;
+%     Log-loss: $\log_2{(1+e^{-z})}$;
+%     Exp-loss: $e^{-z}$.}
+%     \label{fig:lossfunc}
+% \end{figure}
+
+\input{figs/lossfunc.tex}
 
 \textbf{Estimation method of moments} (MOM): 
 equate the \uline{theoretical moments (functions of parameters)},

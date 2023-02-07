@@ -2,10 +2,12 @@
 
 % \begin{figure}[htpb]
 %     \centering
-%     \includegraphics[width=.75\textwidth]{figs/linalg.pdf}
+%     \includegraphics[width=.75\textwidth]{figs/linalgoutline.pdf}
 %     \caption{outline of Chapter 7}
 %     \label{fig:linalgoutline}
 % \end{figure}
+
+\input{figs/linalgoutline.tex}
 
 Left-product operates rows and right-product operates columns.
 
@@ -62,6 +64,7 @@ Left-product operates rows and right-product operates columns.
         \textbf{Hessian}                                & {\footnotesize For $f:\mathbb{R}^n\to\mathbb{R}$,
         $\mathbf{H}_f=\frac{\partial^2 f}{\partial\bm{x}^2}=\nabla^2 f=\left[\frac{\partial^2 f}{\partial x_ix_j}\right]\in\mathbb{R}^{n\times n}$}\\
         \textbf{Lipschitz constant}                     & $\{L:|f(x_1)-f(x_2)|\leq{L}|x_1-x_2|,\forall{x_1,x_2}\}$, qualifying the degree of smoothness of a function $f$. \\
+        \textbf{perplexity}                             & $\text{perplexity}(p)\triangleq 2^{\mathbb{H}(p)}$, a measure of predictability, and $\text{perplexity}(p_\mathcal{D},p)\triangleq 2^{\mathbb{H}_\text{ce}(p_\mathcal{D},p)}$, a measure how well $p$ predicts $\mathcal{D}$ \\
         \bottomrule
     \end{tabular}
     \caption{Brief concepts}
@@ -461,170 +464,169 @@ subgradient $\bm{g}\in\mathbb{R}^n$ at $\bm{x}_0$ of convex function $f:\mathbb{
     \bm{g}\in\{\bm{g}:f(\bm{x})\geq f(\bm{x}_0)+\bm{g}^\mathsf{T}(\bm{x}-\bm{x}_0)\}
 \end{gather}
 
-\textbf{Solutions for unconstrained optimization}: For updating strategy, 
-\begin{gather}
-    \bm{d}_t=\argmin_{\bm{d}}M_t(\bm{d})\\
-    \bm{\theta}_{t+1} = \bm{\theta}_t+\eta_t\bm{d}_t,
-\end{gather}
-there are approximation methods for $M_t(\bm{d})$ and $\bm{d}_t$
-\begin{itemize}
-    \item first-order methods 
-    \begin{gather}
-        \mathcal{L}(\bm{\theta})\approx\mathcal{L}(\bm{\theta}_t)+\bm{g}_t^\mathsf{T}\bm{d}=:M_t(\bm{d})
-    \end{gather}
-    \begin{itemize}
-        \item steepest descent
-        \begin{itemize}
-            \item gradient for direction 
-            \begin{gather}
-                \bm{d}_t = -\bm{g}_t
-            \end{gather}
-            \item line search for step size 
-            \begin{gather}
-                \eta_t = \argmin_{\eta>0}\mathcal{L}(\bm{\theta}_t+\eta\bm{d}_t)
-            \end{gather}
-        \end{itemize}
-        \item momentum methods
-        \begin{itemize}
-            \item vanilla momentum 
-            \begin{gather}
-            % \begin{cases}
-                \bm{m}_{t+1} = \beta\bm{m}_t+\bm{g}_t \\
-                \bm{\theta}_{t+1} = \bm{\theta}_t-\eta_t\bm{m}_t 
-            % \end{cases}
-            \end{gather}
-            \item Nestrov momentum 
-            \begin{gather}
-            % \begin{cases}
-                \Tilde{\bm{\theta}}_{t+1} = \bm{\theta}_t+\beta(\bm{\theta}_t-\bm{\theta}_{t-1})\\
-                \bm{\theta}_{t+1} = \Tilde{\bm{\theta}}_{t+1}-\eta_t\nabla\mathcal{L}(\Tilde{\bm{\theta}}_{t+1})
-            % \end{cases}
-            \end{gather}
-        \end{itemize}
-    \end{itemize}
-    \item second-order methods 
-    \begin{gather}
-        \mathcal{L}(\bm{\theta})\approx\mathcal{L}(\bm{\theta}_t)+\bm{g}_t^\mathsf{T}\bm{d}+\frac{1}{2}\bm{d}^\mathsf{T}\mathbf{H}_t\bm{d}=:M_t(\bm{d})
-    \end{gather}
-    \begin{itemize}
-        \item Newton's method 
-        \begin{gather}
-            \bm{d}_{t} = -\mathbf{H}_t^{-1}\bm{g}_t
-        \end{gather}
-        \item quasi-Newton's methods 
-        \begin{itemize}
-            \item BFGS
-            \begin{gather}
-            % \begin{cases}
-                \mathbf{H}_t \approx \mathbf{B}_t\\
-                \mathbf{B}_{t+1} = \mathbf{B}_t
-                   + \frac{\Delta\bm{g}_t\Delta\bm{g}_t^\mathsf{T}}{\Delta\bm{g}_t^\mathsf{T}\Delta\bm{\theta}_t}
-                   - \frac{[\mathbf{B}_t\Delta\bm{\theta}_t][\mathbf{B}_t\Delta\bm{\theta}_t]^\mathsf{T}}{\Delta\bm{\theta}_t^\mathsf{T}\mathbf{B}_t\Delta\bm{\theta}_t}
-            % \end{cases}
-            \end{gather}
-            \item L-BFGS
-            \begin{gather}
-            % \begin{cases}
-                \mathbf{H}_t^{-1} \approx \mathbf{C}_t \\
-                \mathbf{C}_{t+1} = 
-                    \left[
-                        \mathbf{I}-\frac{\Delta\bm{\theta}_t\Delta\bm{g}_t^\mathsf{T}}{\Delta\bm{g}_t^\mathsf{T}\Delta\bm{\theta}_t}
-                    \right]
-                    \mathbf{C}_t
-                    \left[
-                        \mathbf{I}-\frac{\Delta\bm{g}_t\Delta\bm{\theta}_t^\mathsf{T}}{\Delta\bm{g}_t^\mathsf{T}\Delta\bm{\theta}_t}
-                    \right]
-                    + \frac{\Delta\bm{\theta}_t\Delta\bm{\theta}_t^\mathsf{T}}{\Delta\bm{g}_t^\mathsf{T}\Delta\bm{\theta}_t}
-            % \end{cases}
-            \end{gather}
-        \end{itemize}
-        \item trust region method 
-        \begin{gather}
-            \bm{d}_t=\argmin_{\bm{d}\in\mathcal{R}_t}M_t(\bm{d})
-        \end{gather}
-    \end{itemize}
-    \item stochastic gradient descent (SGD)
-    \begin{gather}
-    % \begin{cases}
-        \mathcal{L}(\bm{\theta})=\mathbb{E}_{q(\bm{z})}\mathcal{L}(\bm{\theta},\bm{z})\\
-        \bm{\theta}_{t+1}=\bm{\theta}_t-\eta_t\nabla\mathcal{L}(\bm{\theta}_t,\bm{z}_t)=\bm{\theta}_t-\eta_t\bm{g}_t
-    % \end{cases}
-    \end{gather}
-    \begin{itemize}
-        \item iterate averaging 
-        \begin{gather}
-            \Bar{\bm{\theta}}_t=\frac{1}{t}\sum_{i=1}^t\bm{\theta}_i=\frac{1}{t}\bm{\theta}_t+\frac{t-1}{t}\Bar{\bm{\theta}}_{t-1}
-        \end{gather}
-        \item variance reduction
-        \begin{itemize}
-            \item stochastic variance reduced gradient (SVRG)
-            \begin{gather}
-            % \begin{cases}
-                \Tilde{\bm{\theta}}:~\text{any snapshot of}~\bm{\theta}~\text{(fixed within each epoch)}\\
-                \bm{g}_t=\nabla\mathcal{L}_t(\bm{\theta}_t)-\nabla\mathcal{L}_t(\Tilde{\bm{\theta}})+\nabla\mathcal{L}(\Tilde{\bm{\theta}})
-            % \end{cases}
-            \end{gather}
-            \item stochastic averaged gradient accelerated (SAGA)
-            \begin{gather}
-            \begin{cases}
-                \bm{g}_{t-1,n}^\text{local}=\nabla\mathcal{L}_n(\bm{\theta}_{t-1})\\
-                \bm{g}_{t-1}^\text{avg}=\frac{1}{N}\sum_{n=1}^N\bm{g}_{t-1,n}^\text{local}\\
-                \bm{g}_t=\nabla\mathcal{L}_n(\bm{\theta}_t)-\bm{g}_{t-1,n}^\text{local}+\bm{g}_{t-1}^\text{avg}
-            \end{cases}
-            \end{gather}
-        \end{itemize}
-        \item preconditioned SGD ($\mathbf{M}_t$: preconditioner) 
-        \begin{gather}
-            \bm{\theta}_{t+1}=\bm{\theta}_t-\eta_t\mathbf{M}_t^{-1}\bm{g}_t
-        \end{gather}
-        \begin{itemize}
-            \item AdaGrad
-            \begin{gather}
-                \mathbf{M}_t=\mathrm{diag}(\bm{s}_t+\bm{\epsilon})^\frac{1}{2},\text{where}~\bm{s}_t\in\mathbb{R}^D,\\
-                s_{t,d}=\sum_{\tau=1}^t g_{\tau,d}^2
-            \end{gather}
-            \item RMSProp
-            \begin{align}
-                s_{t,d}
-                =&~ \beta s_{t-1,d}+(1-\beta)g_{t-1,d}^2\\
-                \approx&~ \frac{1}{t}\sum_{\tau=1}^t g_{\tau,d}^2~\text{if}~\beta\approx 1
-            \end{align}
-            \item AdaDelta
-            \begin{gather}
-                \mathbf{M}_t^{-1}=\frac{\sqrt{\bm{\delta}_{t-1}+\bm{\epsilon}}}{\sqrt{\bm{s}_t+\bm{\epsilon}}}\\
-                \bm{s}_t~\text{is the same as RMSProp}\\
-                \bm{\delta}_{t-1}=\beta\bm{\delta}_{t-2}+(1-\beta)[\Delta \bm{\theta}_{t-1}]^2
-            \end{gather}
-            \item Adam
-            \begin{gather}
-                \bm{m}_t=\beta_1\bm{m}_{t-1}+(1-\beta_1)\bm{g}_t\\
-                \bm{s}_t=\beta_2\bm{s}_{t-1}+(1-\beta_2)\bm{g}_t^2\\
-                \Delta\bm{\theta}_t=-\eta_t\frac{1}{\sqrt{\bm{s}_t}+\bm{\varepsilon}}\bm{m}_t
-            \end{gather}
-        \end{itemize}
-    \end{itemize}
-\end{itemize}
+% \begin{figure}[htpb]
+%     \centering
+%     \includegraphics[width=\textwidth]{figs/unconopt.pdf}
+%     \caption{Solutions for unconstrained optimization updating strategies}
+%     {\footnotesize there are approximation methods for $M_t(\bm{d})$ and $\bm{d}_t$.
+%     \textbf{BFGS}: Broyden, Fletcher, Goldfarb and Shanno;
+%     \textbf{L-BFGS}: limited memory BFGS;
+%     \textbf{SGD}: Stochastic Gradient Descent;
+%     \textbf{SVRG}: Stochastic Variance Reduced Gradient;
+%     \textbf{SAGA}: Stochastic Averaged Gradient Accelerated;
+%     \textbf{AdaGrad}: ADAptive Gradient;
+%     \textbf{RMSProp}: Root Mean Squared resilient PROPagation;
+%     \textbf{Adam}: Adaptive moment estimation.
+%     }
+    
+%     \label{fig:unconopt}
+% \end{figure}
 
+\input{figs/unconopt.tex}
 
-% \begin{align}
-%     \bm{\theta}_{t+1}   =&~ \bm{\theta}_t+\eta_t\bm{d}_t \\
-%     \bm{d}_t            =&~ -\bm{g}_t \\
-%     \eta_t              =&~ \argmin_{\eta>0}\mathcal{L}(\bm{\theta}_t+\eta\bm{d}_t) \\
-%     \bm{m}_{t+1}        =&~ \beta\bm{m}_t+\bm{g}_t\\
-%     \bm{\theta}_{t+1}   =&~ \bm{\theta}_t-\eta_t\bm{m}_t \\
-%     \Tilde{\bm{\theta}}_{t+1}   =&~ \bm{\theta}_t+\beta(\bm{\theta}_t-\bm{\theta}_{t-1})\\
-%     \bm{\theta}_{t+1}           =&~ \Tilde{\bm{\theta}}_{t+1}-\eta_t\nabla\mathcal{L}(\Tilde{\bm{\theta}}_{t+1})\\
-%     \bm{\theta}_{t+1}           =&~ \bm{\theta}_t-\eta_t\mathbf{H}_t^{-1}\bm{g}_t\\
-%     \mathbf{H}_t                \approx&~ \mathbf{B}_t\\
-%     \mathbf{B}_{t+1}            =&~ \mathbf{B}_t
-%                                   + \frac{\Delta\bm{g}_t\Delta\bm{g}_t^\mathsf{T}}{\Delta\bm{g}_t^\mathsf{T}\Delta\bm{\theta}_t}
-%                                   - \frac{[\mathbf{B}_t\Delta\bm{\theta}_t][\mathbf{B}_t\Delta\bm{\theta}_t]^\mathsf{T}}{\Delta\bm{\theta}_t^\mathsf{T}\mathbf{B}_t\Delta\bm{\theta}_t}\\
-%     \mathbf{H}_t^{-1}           \approx&~ \mathbf{C}_t \\
-%     \mathbf{C}_{t+1}            =&~ \left[\mathbf{I}-\frac{\Delta\bm{\theta}_t\Delta\bm{g}_t^\mathsf{T}}{\Delta\bm{g}_t^\mathsf{T}\Delta\bm{\theta}_t}\right]
-%                                   \mathbf{C}_t
-%                                   \left[\mathbf{I}-\frac{\Delta\bm{g}_t\Delta\bm{\theta}_t^\mathsf{T}}{\Delta\bm{g}_t^\mathsf{T}\Delta\bm{\theta}_t}\right]
-%                                   + \frac{\Delta\bm{\theta}_t\Delta\bm{\theta}_t^\mathsf{T}}{\Delta\bm{g}_t^\mathsf{T}\Delta\bm{\theta}_t}
-% \end{align}
+% \textbf{Solutions for unconstrained optimization}: For updating strategy, 
+% \begin{gather}
+%     \bm{d}_t=\argmin_{\bm{d}}M_t(\bm{d})\\
+%     \bm{\theta}_{t+1} = \bm{\theta}_t+\eta_t\bm{d}_t,
+% \end{gather}
+% there are approximation methods for $M_t(\bm{d})$ and $\bm{d}_t$
+% \begin{itemize}
+%     \item first-order methods 
+%     \begin{gather}
+%         \mathcal{L}(\bm{\theta})\approx\mathcal{L}(\bm{\theta}_t)+\bm{g}_t^\mathsf{T}\bm{d}=:M_t(\bm{d})
+%     \end{gather}
+%     \begin{itemize}
+%         \item steepest descent
+%         \begin{itemize}
+%             \item gradient for direction 
+%             \begin{gather}
+%                 \bm{d}_t = -\bm{g}_t
+%             \end{gather}
+%             \item line search for step size 
+%             \begin{gather}
+%                 \eta_t = \argmin_{\eta>0}\mathcal{L}(\bm{\theta}_t+\eta\bm{d}_t)
+%             \end{gather}
+%         \end{itemize}
+%         \item momentum methods
+%         \begin{itemize}
+%             \item vanilla momentum 
+%             \begin{gather}
+%             % \begin{cases}
+%                 \bm{m}_{t+1} = \beta\bm{m}_t+\bm{g}_t \\
+%                 \bm{\theta}_{t+1} = \bm{\theta}_t-\eta_t\bm{m}_t 
+%             % \end{cases}
+%             \end{gather}
+%             \item Nestrov momentum 
+%             \begin{gather}
+%             % \begin{cases}
+%                 \Tilde{\bm{\theta}}_{t+1} = \bm{\theta}_t+\beta(\bm{\theta}_t-\bm{\theta}_{t-1})\\
+%                 \bm{\theta}_{t+1} = \Tilde{\bm{\theta}}_{t+1}-\eta_t\nabla\mathcal{L}(\Tilde{\bm{\theta}}_{t+1})
+%             % \end{cases}
+%             \end{gather}
+%         \end{itemize}
+%     \end{itemize}
+%     \item second-order methods 
+%     \begin{gather}
+%         \mathcal{L}(\bm{\theta})\approx\mathcal{L}(\bm{\theta}_t)+\bm{g}_t^\mathsf{T}\bm{d}+\frac{1}{2}\bm{d}^\mathsf{T}\mathbf{H}_t\bm{d}=:M_t(\bm{d})
+%     \end{gather}
+%     \begin{itemize}
+%         \item Newton's method 
+%         \begin{gather}
+%             \bm{d}_{t} = -\mathbf{H}_t^{-1}\bm{g}_t
+%         \end{gather}
+%         \item quasi-Newton's methods 
+%         \begin{itemize}
+%             \item BFGS
+%             \begin{gather}
+%             % \begin{cases}
+%                 \mathbf{H}_t \approx \mathbf{B}_t\\
+%                 \mathbf{B}_{t+1} = \mathbf{B}_t
+%                    + \frac{\Delta\bm{g}_t\Delta\bm{g}_t^\mathsf{T}}{\Delta\bm{g}_t^\mathsf{T}\Delta\bm{\theta}_t}
+%                    - \frac{[\mathbf{B}_t\Delta\bm{\theta}_t][\mathbf{B}_t\Delta\bm{\theta}_t]^\mathsf{T}}{\Delta\bm{\theta}_t^\mathsf{T}\mathbf{B}_t\Delta\bm{\theta}_t}
+%             % \end{cases}
+%             \end{gather}
+%             \item L-BFGS
+%             \begin{gather}
+%             % \begin{cases}
+%                 \mathbf{H}_t^{-1} \approx \mathbf{C}_t \\
+%                 \mathbf{C}_{t+1} = 
+%                     \left[
+%                         \mathbf{I}-\frac{\Delta\bm{\theta}_t\Delta\bm{g}_t^\mathsf{T}}{\Delta\bm{g}_t^\mathsf{T}\Delta\bm{\theta}_t}
+%                     \right]
+%                     \mathbf{C}_t
+%                     \left[
+%                         \mathbf{I}-\frac{\Delta\bm{g}_t\Delta\bm{\theta}_t^\mathsf{T}}{\Delta\bm{g}_t^\mathsf{T}\Delta\bm{\theta}_t}
+%                     \right]
+%                     + \frac{\Delta\bm{\theta}_t\Delta\bm{\theta}_t^\mathsf{T}}{\Delta\bm{g}_t^\mathsf{T}\Delta\bm{\theta}_t}
+%             % \end{cases}
+%             \end{gather}
+%         \end{itemize}
+%         \item trust region method 
+%         \begin{gather}
+%             \bm{d}_t=\argmin_{\bm{d}\in\mathcal{R}_t}M_t(\bm{d})
+%         \end{gather}
+%     \end{itemize}
+%     \item stochastic gradient descent (SGD)
+%     \begin{gather}
+%     % \begin{cases}
+%         \mathcal{L}(\bm{\theta})=\mathbb{E}_{q(\bm{z})}\mathcal{L}(\bm{\theta},\bm{z})\\
+%         \bm{\theta}_{t+1}=\bm{\theta}_t-\eta_t\nabla\mathcal{L}(\bm{\theta}_t,\bm{z}_t)=\bm{\theta}_t-\eta_t\bm{g}_t
+%     % \end{cases}
+%     \end{gather}
+%     \begin{itemize}
+%         \item iterate averaging 
+%         \begin{gather}
+%             \Bar{\bm{\theta}}_t=\frac{1}{t}\sum_{i=1}^t\bm{\theta}_i=\frac{1}{t}\bm{\theta}_t+\frac{t-1}{t}\Bar{\bm{\theta}}_{t-1}
+%         \end{gather}
+%         \item variance reduction
+%         \begin{itemize}
+%             \item stochastic variance reduced gradient (SVRG)
+%             \begin{gather}
+%             % \begin{cases}
+%                 \Tilde{\bm{\theta}}:~\text{any snapshot of}~\bm{\theta}~\text{(fixed within each epoch)}\\
+%                 \bm{g}_t=\nabla\mathcal{L}_t(\bm{\theta}_t)-\nabla\mathcal{L}_t(\Tilde{\bm{\theta}})+\nabla\mathcal{L}(\Tilde{\bm{\theta}})
+%             % \end{cases}
+%             \end{gather}
+%             \item stochastic averaged gradient accelerated (SAGA)
+%             \begin{gather}
+%             \begin{cases}
+%                 \bm{g}_{t-1,n}^\text{local}=\nabla\mathcal{L}_n(\bm{\theta}_{t-1})\\
+%                 \bm{g}_{t-1}^\text{avg}=\frac{1}{N}\sum_{n=1}^N\bm{g}_{t-1,n}^\text{local}\\
+%                 \bm{g}_t=\nabla\mathcal{L}_n(\bm{\theta}_t)-\bm{g}_{t-1,n}^\text{local}+\bm{g}_{t-1}^\text{avg}
+%             \end{cases}
+%             \end{gather}
+%         \end{itemize}
+%         \item preconditioned SGD ($\mathbf{M}_t$: preconditioner) 
+%         \begin{gather}
+%             \bm{\theta}_{t+1}=\bm{\theta}_t-\eta_t\mathbf{M}_t^{-1}\bm{g}_t
+%         \end{gather}
+%         \begin{itemize}
+%             \item adaptive gradient (AdaGrad)
+%             \begin{gather}
+%                 \mathbf{M}_t=\mathrm{diag}(\bm{s}_t+\bm{\epsilon})^\frac{1}{2},\text{where}~\bm{s}_t\in\mathbb{R}^D,\\
+%                 s_{t,d}=\sum_{\tau=1}^t g_{\tau,d}^2
+%             \end{gather}
+%             \item RMSProp
+%             \begin{align}
+%                 s_{t,d}
+%                 =&~ \beta s_{t-1,d}+(1-\beta)g_{t-1,d}^2\\
+%                 \approx&~ \frac{1}{t}\sum_{\tau=1}^t g_{\tau,d}^2~\text{if}~\beta\approx 1
+%             \end{align}
+%             \item AdaDelta
+%             \begin{gather}
+%                 \mathbf{M}_t^{-1}=\frac{\sqrt{\bm{\delta}_{t-1}+\bm{\epsilon}}}{\sqrt{\bm{s}_t+\bm{\epsilon}}}\\
+%                 \bm{s}_t~\text{is the same as RMSProp}\\
+%                 \bm{\delta}_{t-1}=\beta\bm{\delta}_{t-2}+(1-\beta)[\Delta \bm{\theta}_{t-1}]^2
+%             \end{gather}
+%             \item Adam
+%             \begin{gather}
+%                 \bm{m}_t=\beta_1\bm{m}_{t-1}+(1-\beta_1)\bm{g}_t\\
+%                 \bm{s}_t=\beta_2\bm{s}_{t-1}+(1-\beta_2)\bm{g}_t^2\\
+%                 \Delta\bm{\theta}_t=-\eta_t\frac{1}{\sqrt{\bm{s}_t}+\bm{\varepsilon}}\bm{m}_t
+%             \end{gather}
+%         \end{itemize}
+%     \end{itemize}
+% \end{itemize}
 
 
 % \begin{note}

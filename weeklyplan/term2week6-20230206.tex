@@ -1,0 +1,34 @@
+\section{Linear Models}
+
+\begin{quote}
+    \citep{pml1Book} -- Chapters 9-12.
+\end{quote}
+
+\subsection{Linear Discriminant Analysis}
+
+\textbf{Generative classifier}: 
+modeling that the features are generated from \textbf{class conditional density} $p(\bm{x}|y=c;\bm{\theta})$,
+instead of classifying the samples directly by modeling $p(y|\bm{x},\bm{\theta})$ directly (\textbf{discriminative classifier}).
+\begin{gather}
+    p(y=c|\bm{x};\bm{\theta})=
+    \frac{p(\bm{x}|y=c;\bm{\theta})p(y=c;\bm{\theta})}
+    {\sum_{c'\in\mathcal{C}}p(\bm{x}|y=c';\bm{\theta})p(y=c';\bm{\theta})}\\
+    \underbrace{
+    \log{p(y=c|\bm{x};\bm{\theta})}=[\bm{w}(\bm{\theta})]^\mathsf{T}\bm{x}+\text{const}}_\text{LDA}
+    ~\text{for some special}~p(\bm{x}|y=c;\bm{\theta})
+\end{gather}
+\begin{itemize}
+    \item \textbf{Gaussian discriminant analysis} $p(\bm{x}|y=c;\bm{\theta})=\mathcal{N}(\bm{x}|\bm{\mu}_c,\bm{\Sigma}_c)$
+\end{itemize}\unsure{
+\color{red}What special class conditional density?
+}
+
+\textbf{Gaussian discriminant analysis}: 
+\begin{gather}
+    p(\bm{x}|y=c;\bm{\theta})
+    =\mathcal{N}(\bm{x}|\bm{\mu}_c,\bm{\Sigma}_c)
+    =(2\pi)^{-\frac{p}{2}}|\bm{\Sigma}|^{-\frac{}{}}
+\end{gather}
+
+
+\subsection{Logistic Regression}
