@@ -9,8 +9,13 @@
 \usepackage[shortlabels]{enumitem}
 \setlist{nolistsep}
 \usepackage{framed}
+\usepackage{multirow}
 \usepackage{ulem}
 \usepackage{bm}
+\usepackage{listings}
+\usepackage{fancyvrb}
+\usepackage{empheq}
+\newcommand*\widefbox[1]{\fbox{\hspace{2em}#1\hspace{2em}}}
 
 % \setlist[1]{itemsep=-5pt,parskip=0pt}
 
@@ -21,6 +26,7 @@
 \usepackage{hyperref}
 % Lets us import images and graphics.
 \usepackage{graphicx}
+\usepackage{subcaption}
 % Lets us use figures in floating environments.
 \usepackage{float}
 % Lets us create multiple columns.
@@ -38,10 +44,12 @@
 % Use a smiley face for our qed symbol.
 \usepackage{tikzsymbols}
 \renewcommand\qedsymbol{$\Laughey$}
+\usepackage{makecell}
 
 \usepackage{geometry}
 \usepackage{lineno}
-
+% \usepackage{marginnote}
+% \renewcommand{\marginpar}{\marginnote}
 
 \def\class{article}
 
@@ -85,6 +93,113 @@
 \setlength{\tabcolsep}{5pt}
 \renewcommand\arraystretch{1.5}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Code Blocks style   %
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% \definecolor{mygreen}{rgb}{0,0.6,0}
+% \definecolor{mygray}{rgb}{0.5,0.5,0.5}
+% \definecolor{mymauve}{rgb}{0.58,0,0.82}
+
+% supported languages
+% ABAP, ACSL, Ada, Algol, Ant, Assembler, Awk, bash, Basic, C#, C++, C, Caml, Clean, Cobol, Comal, csh, 
+% Delphi, Eiffel, Elan, erlang, Euphoria, Fortran, GCL, Go (golang), Gnuplot, Haskell, HTML, IDL, inform, Java, JVMIS, 
+% ksh, Lisp, Logo, Lua, make, Mathematica1, Matlab, Mercury, MetaPost, Miranda, Mizar, ML, Modelica, Modula-2, MuPAD, NASTRAN,
+% Oberon-2, Objective C, OCL, Octave, Oz, Pascal, Perl, PHP, PL/I, Plasm, POV, Prolog, Promela, Python, 
+% R, Reduce, Rexx, RSL, Ruby, S, SAS, Scilab, sh, SHELXL, Simula, SQL, tcl, TeX, 
+% VBScript, Verilog, VHDL, VRML, XML, XSLT.
+
+\lstset{ 
+  language=R,                               % the language of the code
+  % keepspaces=true,                          % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
+  basicstyle=\footnotesize\ttfamily,        % the size of the fonts that are used for the code
+  numbers=left,                             % where to put the line-numbers, possible values are (none, left, right)
+  numberstyle=\footnotesize\color{Blue},    % the style that is used for the line-numbers
+  % firstnumber=1000,                         % start line enumeration with line 1000
+  stepnumber=1,                             % the step between two line-numbers. If it is 1, each line will be numbered
+  numbersep=5pt,                            % how far the line-numbers are from the code
+  backgroundcolor=\color{white},            % choose the background color. You must add \usepackage{color} or \usepackage{xcolor}; should come as last argument
+  showspaces=false,                         % show spaces adding particular underscores; it overrides 'showstringspaces'
+  showstringspaces=false,                   % underline spaces within strings only
+  showtabs=false,                           % show tabs within strings adding particular underscores
+  frame=single,                             % adds a frame around the code
+  rulecolor=\color{black},                  % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. commens (green here))
+  tabsize=2,                                % sets default tabsize to 2 spaces
+  captionpos=b,                             % sets the caption-position to bottom
+  breaklines=true,                          % sets automatic line breaking
+  breakatwhitespace=false,                  % sets if automatic breaks should only happen at whitespace
+  keywordstyle=\color{RoyalBlue},           % keyword style
+  commentstyle=\color{YellowGreen},         % comment style
+  stringstyle=\color{ForestGreen},          % string literal style
+  % deletekeywords={...},                     % if you want to delete keywords from the given language
+  % morekeywords={*,...},                     % if you want to add more keywords to the set
+  % escapeinside={\%*}{*)},                   % if you want to add LaTeX within your code
+  % extendedchars=true,                       % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
+  title=\lstname                   % show the filename of files included with \lstinputlisting; also try caption instead of title
+} 
+
+\lstset{ 
+  language=Python,                          % the language of the code
+  keepspaces=true,                          % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
+  basicstyle=\footnotesize\ttfamily,        % the size of the fonts that are used for the code
+  numbers=left,                             % where to put the line-numbers, possible values are (none, left, right)
+  numberstyle=\footnotesize\color{Blue},    % the style that is used for the line-numbers
+  % firstnumber=1000,                         % start line enumeration with line 1000
+  stepnumber=1,                             % the step between two line-numbers. If it is 1, each line will be numbered
+  numbersep=5pt,                            % how far the line-numbers are from the code
+  backgroundcolor=\color{white},            % choose the background color. You must add \usepackage{color} or \usepackage{xcolor}; should come as last argument
+  showspaces=false,                         % show spaces adding particular underscores; it overrides 'showstringspaces'
+  showstringspaces=false,                   % underline spaces within strings only
+  showtabs=false,                           % show tabs within strings adding particular underscores
+  frame=single,                             % adds a frame around the code
+  rulecolor=\color{black},                  % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. commens (green here))
+  tabsize=2,                                % sets default tabsize to 2 spaces
+  captionpos=b,                             % sets the caption-position to bottom
+  breaklines=true,                          % sets automatic line breaking
+  breakatwhitespace=false,                  % sets if automatic breaks should only happen at whitespace
+  keywordstyle=\color{RoyalBlue},           % keyword style
+  commentstyle=\color{YellowGreen},         % comment style
+  stringstyle=\color{ForestGreen},          % string literal style
+  % deletekeywords={...},                     % if you want to delete keywords from the given language
+  % morekeywords={*,...},                     % if you want to add more keywords to the set
+  % escapeinside={\%*}{*)},                   % if you want to add LaTeX within your code
+  % extendedchars=true,                       % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
+  title=\lstname                   % show the filename of files included with \lstinputlisting; also try caption instead of title
+} 
+
+
+\lstset{ 
+  language=Tex,                             % the language of the code
+  % keepspaces=true,                          % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
+  basicstyle=\footnotesize\ttfamily,        % the size of the fonts that are used for the code
+  numbers=left,                             % where to put the line-numbers, possible values are (none, left, right)
+  numberstyle=\footnotesize\color{Blue},    % the style that is used for the line-numbers
+  % firstnumber=1000,                         % start line enumeration with line 1000
+  stepnumber=1,                             % the step between two line-numbers. If it is 1, each line will be numbered
+  numbersep=5pt,                            % how far the line-numbers are from the code
+  backgroundcolor=\color{white},            % choose the background color. You must add \usepackage{color} or \usepackage{xcolor}; should come as last argument
+  showspaces=false,                         % show spaces adding particular underscores; it overrides 'showstringspaces'
+  showstringspaces=false,                   % underline spaces within strings only
+  showtabs=false,                           % show tabs within strings adding particular underscores
+  frame=single,                             % adds a frame around the code
+  rulecolor=\color{black},                  % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. commens (green here))
+  tabsize=2,                                % sets default tabsize to 2 spaces
+  captionpos=b,                             % sets the caption-position to bottom
+  breaklines=true,                          % sets automatic line breaking
+  breakatwhitespace=false,                  % sets if automatic breaks should only happen at whitespace
+  keywordstyle=\color{RoyalBlue},           % keyword style
+  commentstyle=\color{YellowGreen},         % comment style
+  stringstyle=\color{ForestGreen},          % string literal style
+  % deletekeywords={...},                     % if you want to delete keywords from the given language
+  % morekeywords={*,...,\begin},                     % if you want to add more keywords to the set
+  % escapeinside={\%*}{*)},                   % if you want to add LaTeX within your code
+  % extendedchars=true,                       % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
+  title=\lstname                   % show the filename of files included with \lstinputlisting; also try caption instead of title
+} 
+
+
+
+
 %%%%%%%%%%%%%%
 %  SI Unitx  %
 %%%%%%%%%%%%%%
@@ -100,8 +215,9 @@
 \usepackage{tikz}
 \usepackage{tikz-cd}
 \usepackage{tikzsymbols}
+\usepackage[mode=buildnew]{standalone}% requires -shell-escape
 
-\usetikzlibrary{intersections, angles, quotes, calc, positioning, backgrounds}
+\usetikzlibrary{intersections, angles, quotes, calc, positioning, backgrounds, fit}
 \usetikzlibrary{arrows.meta}
 
 \tikzset{
@@ -570,7 +686,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \declaretheorem[numberwithin=section, style=thmtheorembox,     name=Theorem]{theorem}
-\declaretheorem[numbered=no,          style=thmexamplebox,     name=Example]{example}
+% \declaretheorem[numbered=no,          style=thmexamplebox,     name=Example]{example}
+\declaretheorem[numberwithin=section, style=thmexamplebox,     name=Example]{example}
 \declaretheorem[numberwithin=section, style=thmclaimbox,       name=Claim]{claim}
 \declaretheorem[numberwithin=section, style=thmcorollarybox,   name=Corollary]{corollary}
 \declaretheorem[numberwithin=section, style=thmpropbox,        name=Proposition]{prop}
@@ -635,7 +752,7 @@
     colframe=gray!80!black,
     size=small,
     boxrule=1pt,
-    title=\textbf{Note:-},
+    title=\textbf{Note:-!},
     halign title=flush center,
     coltitle=black,
     breakable,

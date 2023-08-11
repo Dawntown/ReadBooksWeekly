@@ -1,0 +1,75 @@
+\begin{figure}[htpb]
+    \centering
+    \begin{tikzpicture}[
+        datanode/.style={rectangle, solid, draw=black!85, rounded corners=.1cm, fill=orange!15, minimum size=10mm},
+        networknode/.style={rectangle, solid, draw=black!85, rounded corners=.1cm, fill=violet!15, minimum size=10mm},
+        lossnode/.style={rectangle, solid, draw=black!85, minimum size=10mm},
+        dashedouter/.style={rectangle, draw=black!50, dashed, very thick, inner sep=5pt, inner xsep=2mm, inner ysep=3mm},
+        dottedouter/.style={rectangle, draw=black!50, dotted, very thick, rounded corners=.2cm},
+        ->,>=stealth',auto,node distance=7mm,thick]
+        \tikzstyle{every node}=[font=\small,scale=0.9]
+
+        \node[networknode] (enc) {$\mathrm{ENC}(\mathbf{W},\mathbf{X};\mathbf{\Theta}^E)$};
+
+        % \node[dashedouter, label=above:{Input}] (input) {
+        % \begin{tikzpicture}[remember picture]
+            \node[datanode, left = of enc] (X) {$\mathbf{X}$};
+            \node[datanode, below = of X] (W) {$\mathbf{W}$};
+        % \end{tikzpicture}
+        % };
+
+        \node[fit={(X) (W)}, dashedouter, label=above:{Input}, inner xsep=2mm, inner ysep=3mm] (output) {};
+        
+        \node[datanode, right = of enc] (Z) {$\mathbf{Z}$};
+        \node[networknode, right = of Z] (decs) {$\mathrm{DEC}(\mathbf{Z};\mathbf{\Theta}^S)$};
+        \node[networknode, below = of decs] (decd) {$\mathrm{DEC}(\mathbf{Z};\mathbf{\Theta}^D)$};
+
+        % \node[dashedouter, label=above:{Output}] (output) {
+        % \begin{tikzpicture}[remember picture]
+            \node[datanode, right = of decs] (haty) {$\hat{\bm{y}}^S$};
+            \node[datanode, below = of haty] (hatW) {$\hat{\mathbf{W}}$};
+        % \end{tikzpicture}
+        % };
+        
+        \node[fit={(haty) (hatW)}, dashedouter, label=above:{Output}] (output) {};
+        
+        \node[lossnode, right = of haty] (ls) {$\mathcal{L}_\text{sup}^S$};
+        \node[lossnode, below = of ls] (lr) {$\mathcal{L}_\text{rec}^G$};
+
+        \node[datanode, right = of ls] (ys) {$\bm{y}^S$};
+        % \node[datanode, right = of lr] (hatW) {$\mathbf{W}$};
+
+        \node[fit={(X) (W) (enc) (Z)}, dottedouter, draw=NavyBlue!40, inner xsep=6mm, inner ysep=4mm, ultra thick] (graphencnet) {};
+        \node[anchor=south] at ([yshift=0.1cm]graphencnet.north) {\color{NavyBlue}\makecell{\textbf{Graph encoder network}: \\ graph structure + optional node features \\ $\to$ node embeddings}};
+
+        \node[fit={(W) (decd) (hatW) (lr)}, dottedouter, draw=ForestGreen!40, inner xsep=11mm, inner ysep=4mm, ultra thick] (graphdecdnet) {};
+        \node[anchor=north] at ([yshift=-0.1cm]graphdecdnet.south) {\color{ForestGreen}\makecell{\textbf{Graph decoder network}: \\ node embeddings $\to$ similarity scores}};
+
+        \node[fit={(Z) (decs) (haty) (ls) (ys)}, dottedouter, draw=Maroon!40, inner xsep=8mm, inner ysep=3mm, ultra thick] (graphdecsnet) {};
+        \node[anchor=south] at ([yshift=0.2cm]graphdecsnet.north) {\color{Maroon}\makecell{\textbf{Classification network}: \\ node embeddings $\to$ labels}};
+
+        \node[fit={(Z)}, dottedouter, draw=ForestGreen!40, inner xsep=5mm, inner ysep=5mm, ultra thick] (graphdecdnet1) {};
+        
+        \draw[->] (X) -- (enc);
+        \draw[->] (W) -| (enc);
+        \draw[->] (enc) -- (Z);
+        \draw[->] (Z) -- (decs);
+        \draw[->] (Z) |- (decd);
+        \draw[->] (decs) -- (haty);
+        \draw[->] (decd) -- (hatW);
+        \draw[->, dashed] (haty) -- (ls);
+        \draw[->, dashed] (hatW) -- (lr);
+        \draw[<-] (ls) -- (ys);
+        \draw[->, dashed] (W) |- +(0,-1)-| (lr);
+        % \draw[<-, dashed] (hatW) -- (W);
+    \end{tikzpicture}
+    \begin{gather}
+        \mathcal{L} = \alpha \mathcal{L}^S_\text{sup}(\bm{y}^S,\hat{\bm{y}}^S;\mathbf{\Theta})
+        + \beta \mathcal{L}_{\text{rec}}^G(\mathbf{W},\hat{\mathbf{W}};\mathbf{\Theta})
+        + \gamma \mathcal{L}_\text{reg}(\mathbf{\Theta})
+    \end{gather}
+    where $S\in\{N,E,G\}$, $\mathbf{\Theta}=\{\mathbf{\Theta}^N,\mathbf{\Theta}^E,\mathbf{\Theta}^G,\mathbf{\Theta}^D\}$ and $\mathcal{L}_\text{reg}$ is regularization term.
+    The overall loss is composed of supervised losses (optional), reconstruction loss, and regularization loss with weights.
+    \caption{Framework of \textsc{GraphEDM}}
+    \label{fig:graphedm}
+\end{figure}

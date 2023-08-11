@@ -1,0 +1,13 @@
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.75\textwidth]{figs/paralleltrain.png}
+    \caption{Parallel training across multiple machines}
+    \label{fig:paralleltrain}
+    {\footnotesize 
+    \textbf{synchronous training}: Each machine \textit{blocks} until receiving the centrally aggregated gradient $\bm{g}_t$, 
+    $\Tilde{\bm{g}}_t^k\leftarrow\sum_{k=1}^K\bm{g}_t^k$, 
+    and $\bm{\theta}_t^k\leftarrow\bm{\theta}_t^k-\eta_t\Tilde{\bm{g}}_t^k$.
+    
+    Otherwise, \textbf{asynchronous training}, no aggregation of $\bm{g}_t$ 
+    but $\bm{\theta}_t^k\leftarrow\bm{\theta}_t^k-\eta_t\bm{g}_t^k$}
+\end{figure}

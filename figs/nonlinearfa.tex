@@ -1,0 +1,19 @@
+\begin{figure}
+    \centering
+    \begin{tikzpicture}[
+        observeddata/.style={circle, draw=black, fill=black!15, minimum size=7mm},
+        latentdata/.style={circle, draw=black, minimum size=7mm},
+        ->,>=stealth',auto,node distance=3.5em,thick]
+        \tikzstyle{every node}=[font=\small,scale=0.9]
+
+        
+        \node[roundnode] (data) {$\bm{x}$};
+        \node[roundnode, right = of data] (latent) {$\bm{z}$};
+              
+        \draw[->] (latent)  -- (data);
+    \end{tikzpicture}
+    \caption{Caption}
+    \label{fig:my_label}
+\end{figure}
+
+%% not finish yet

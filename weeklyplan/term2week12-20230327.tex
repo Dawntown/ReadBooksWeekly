@@ -1,0 +1,354 @@
+\subsection{Trees, Forests, Bagging, and Boosting}
+
+\begin{table}[htpb]
+    \centering
+    \caption{Some short unfamiliar terminologies in Tree Model}
+    {\footnotesize
+
+}
+    {\small
+    \begin{tabular}{cp{32em}}
+        \toprule
+        Terminology & Explanations \\
+        \midrule
+        \textbf{empirical class dist.} & $\hat{\pi}_{ic}={\#\{y_n=c:n\in\mathcal{D}_i\}}/{|\mathcal{D}_i|}$ \\
+        \textbf{Gini index} & expected error rate for a node: $G_i=1-\sum_{c=1}^C\hat{\pi}_{ic}^2$ \\
+        \textbf{deviance} or entropy & impurity for a node: $H_i=\mathbb{H}(\hat{\bm{\pi}}_i)=-\sum_{c=1}^C\hat{\pi}_{ic}\log\hat{\pi}_{ic}$ \\
+        \textbf{surrogate split} & a highly correlated ``backup'' features used when the selected features are miss in some training or testing data. \\
+        \textbf{bootstrap sampling} & sample data to the original size with \textit{replacement}, $P(\text{selected})=1-e^{-1}$, with 37\% \textbf{out-of-bag instances (oob)} \\ 
+        \textbf{Gradient Boosting} & a generic paradigm of boosting methods, predicts the residual of each step (gradient) with problem specific loss, such as squared loss or regression and binary logloss for classification.\\
+        \textbf{Feature importance} & the sum of the gain in accuracy for a certain feature over all non-leaf (internal) nodes \\
+        \textbf{Partial dependency plots} & the impact that the most relevant features (a given feature $x_k$ at a single evaluation) have on the output \\
+        \bottomrule
+    \end{tabular}}
+    \label{tab:treemodel}
+\end{table}
+
+Decision tree model splits the feature space into multiple region, 
+the average label of the samples within which is outputted as prediction. 
+The key point is the \textbf{criteria of splitting} given optimal partitioning is a NP-complete problem.
+And the tree model have some key pros and cons:
+\begin{itemize}
+    \item [\texttt{pro}] insensitive to monotone transformations of the inputs since ranking is used for partitioning,
+    so need to standardize the data\unsure{
+    but the distribution of training and testing data still should be similar or same.
+    };
+    \item [\texttt{pro}] with automatic variable selection;
+    \item [\texttt{pro}] robust to outliers and able to handle missing data.
+    \item [\texttt{con}] unable to predict very accurately;
+    \item [\texttt{con}] whose structures are unstable which small changes to the inputs can have large effect on 
+    due to the hierarchical nature of tree growing process. (\textbf{high variance predictor})
+\end{itemize}
+
+
+
+\textbf{Ensemble learning} comprehensively integrates the predictions from multiple models
+\begin{itemize}
+    \item \textit{votting} or committee method: simply average the predictions for regression or take the majority class for classification, with the same bias with the base models but less variance and higher accuracy especially when $M=|\mathcal{M}|$ is large 
+    \begin{gather}
+        p=P(\sum_{m=1}^M Y_m>\frac{M}{2})=1-F_{\text{binom}(M,\theta)}(\frac{M}{2})
+    \end{gather}
+    
+    \item \textbf{Stacking}, weighted voting, learn the combination weights on a \textit{separate} dataset.\unsure{Comparing with Bayes model averaging: 
+    $p(y|\bm{x},\mathcal{D})=\sum_{m\in\mathcal{M}}p(m|\mathcal{D})p(y|\bm{x},m,\mathcal{D})$
+    }
+    \begin{gather}
+        f(y|\bm{x}) = \sum_{m\in\mathcal{M}}w_mf_m(y|\bm{x})
+    \end{gather}
+    
+    \item \textbf{Bagging}, i.e. \textbf{bootstrap aggregating}, train on the selected data 
+    and validate on the oob, then (weightedly) average the prediction from models.
+    \textbf{Random Forest} is Bagged DT \textit{additionally} based on a randomly chosen subset of features\unsure{
+    ``Randomness'' of each tree in the ``forest'' comes from randomly selected samples of bagging and randomly chosen features.
+    } to decorrelate the base learners.
+    However, bagging only uses 63\% of data for training, which usually damages the performance of DNN.\unsure{
+    The base learner can be regarded as \textbf{adaptive basis function} in the linear model.
+    }
+
+    \item \textbf{Boosting} sequentially fitting additive models (strong learner): training a base classifier (weak learner) with the \textit{weights of data samples by the errors} made by the previous ones. At each step, the parameters to be optimized include base learner parameters $\bm{\theta}_m$ and the weight of new base learner $\theta_m$ 
+    \begin{gather}
+        (\bm{\theta}_m.\beta_m)=\argmin_{\bm{\theta}, \beta}\sum_{i=1}^{N}\ell(y_i,f_{m-1}(\bm{x}_i)+\beta F(\bm{x}_i;\bm{\theta}))
+    \end{gather}
+    \begin{itemize}
+        \item \textbf{least squares boosting}: $\ell(y,\hat{y}) = (y-\hat{y})^2$\unsure{
+        for regression problem
+        }
+        \begin{gather}
+            \ell(y_i,f_{m-1}(\bm{x}_i)+\beta F(\bm{x}_i;\bm{\theta})) = (r_{im}-\beta F(\bm{x}_i;\bm{\theta}))^2
+        \end{gather}
+
+        \item \textbf{exponential loss and AdaBoost}: $\ell(\Tilde{y},\hat{y})=\exp(-\Tilde{y}\hat{y})$\unsure{
+        for classification problem. It is also a smooth upper bound on the 0-1 loss. \textbf{\color{red}NOTE} that the exp loss can be written like this only when the label space is $\Tilde{y}\in\{-1,1\}$.
+        }\unsure{
+        Sensitive to outliers.
+        }
+        \begin{example}[AdaBoost]
+            At step $m$, the optimization objective is 
+            \begin{align}
+                &~\min_{F,\beta} L_m(F;\beta) \\
+                L_m(F,\beta) 
+                =&~ \sum_{i=1}^N\exp\left\{
+                    -\Tilde{y}_i\left[
+                        f_{m-1}(\bm{x}_i) + \beta F(\bm{x}_i)
+                    \right]
+                \right\} \\
+                =&~ \sum_{i=1}^N
+                \underbrace{\exp\left\{-\Tilde{y}_if_{m-1}(\bm{x}_i)\right\}}_{\omega_{im}~\text{weight}}
+                \exp\left\{
+                    -\beta\Tilde{y}_i F(\bm{x}_i)
+                \right\} \\
+                % \overset{F,\Tilde{y}\in\{-1,1\}}
+                {=}&~ (e^\beta - e^{-\beta})\sum_{i=1}^N\omega_{im}\mathbb{I}(\Tilde{y}_i\neq F(\bm{x}_i)) + e^{-\beta}\sum_{i=1}^N\omega_{im} \\
+                \Rightarrow
+                % \begin{cases}
+                F_m =&~ \argmin_{F}\sum_{i=1}^N\omega_{im}\mathbb{I}(\Tilde{y}_i\neq F(\bm{x}_i))\\
+                \beta_m =&~ \frac{1}{2}\log\frac{1-\text{err}_m}{\text{err}_m} \\
+                % \end{cases}
+                \text{where err}_m =&~ \frac{\sum_{i=1}^N\omega_{im}\mathbb{I}(\Tilde{y}_i\neq F_m(\bm{x}_i))}{\sum_{i=1}^N\omega_{im}}
+            \end{align}
+        \end{example}
+        \bigskip
+        \item \textbf{log loss and LogitBoost}: $\ell(\Tilde{y},\hat{y})=1/(1+\exp(-2\Tilde{y}\hat{y}))$
+        \item $\cdots$
+    \end{itemize}
+\end{itemize}
+
+
+
+% \textbf{Gradient Boosting}: the idea is similar with the above boosting methods but with general losses and solving the $\hat{\bm{f}}=\argmin_{\bm{f}}\mathcal{L}(\bm{f})$ by performing gradient descent in the space of functions
+
+There are a few more improvement in \textbf{XGBoost} compared with normal gradient tree boost:
+\begin{enumerate}[(1)]
+    \item add regularization term in the loss function,.
+    \begin{gather}
+        \Omega(f)=\gamma J + \frac{1}{2}\sum_{j=1}^Jw_j^2,
+    \end{gather}
+    where $J$ is the number of leaves, and the $w_j$ is the leaf's output.
+    
+    \item apply 2-nd order optimization on the loss,\unsure{
+    In the context of regression tree, $F(\bm(x))=w_{q(\bm{x})}$, where $q:\mathbb{R}^D\to \{1,\cdots,J\}$.
+    \color{red}However, how to calculate the gradient and hessian of loss wrt the function space of model?
+    }
+    {\begin{align}
+        \mathcal{L}_m(F_m)
+        \approx&~ \sum_{i=1}^N\left[
+            \ell(y_i,f_{m-1}(\bm{x}_i)) + g_{im}F_m(\bm{x}_i) + \frac{1}{2}h_{im}F_m^2(\bm{x}_i)
+        \right] \\
+        &~+ \Omega(F_m) + \text{const}
+    \end{align}}
+    % \begin{gather}
+    %     g_{im} = \left.
+    %     \frac{\partial \ell(y_i,f(\bm{x}_i))}{\partial f(\bm{x}_i)}
+    %     \right|_{f=f_{m-1}},~~
+    %     h_{im} = \left.
+    %     \frac{\partial^2 \ell(y_i,f(\bm{x}_i))}{\partial f(\bm{x}_i)^2}
+    %     \right|_{f=f_{m-1}}
+    % \end{gather}
+    where 
+    $g_{im} = \left.
+    \frac{\partial \ell(y_i,f(\bm{x}_i))}{\partial f(\bm{x}_i)}
+    \right|_{f=f_{m-1}}$, and 
+    $h_{im} = \left.
+    \frac{\partial^2 \ell(y_i,f(\bm{x}_i))}{\partial f^2(\bm{x}_i)}
+    \right|_{f=f_{m-1}}$.
+\end{enumerate}
+
+\section{Beyond Supervised Learning}
+
+
+\begin{table}[htpb]
+    \centering
+    \caption{Some short unfamiliar terminologies beyond Supervised Learning}
+    {\footnotesize
+
+}
+    {\small
+    \begin{tabular}{cp{32em}}
+        \toprule
+        Terminology & Explanations \\
+        \midrule
+        \textbf{AutoAugment} & Using blackbox optimization methods to learn which augmentations work best. \\
+        \textbf{adapters} & keep the pre-trained model untouched, but add new parameters (layers inserted inside of the pre-trained model) to modify its internal behavior to customize the feature extraction process for each task \\
+        \textbf{Imputation task} & aka fill-in-the blank task or cloze task (in NLP), $\hat{\bm{x}}_h=f(\bm{x}_v,\bm{x}_h=\mathbf{0})$ \\
+        \textbf{proxy task} & aka pretext task, $p(y|\bm{x}_1,\bm{x}_2)=p(y|r(f(\bm{x}_1),f(\bm{x}_2)))$ to predict the relationship (proxy label that we \textit{set}) between $\bm{x}_1$ and $\bm{x}_2$ by a common representation learning \\
+        \textbf{\makecell{conditional energy\\based model}} & model with the form $p(\bm{x}_2|\bm{x}_1)={\exp\{-\mathcal{E}(\bm{x}_2|\bm{x}_1)\}}/{Z(\bm{x}_1)}$, $Z(\bm{x})=\int{\exp\{-\mathcal{E}(\bm{y}|\bm{x})\}}d\bm{y}$ (\textbf{partition function}, a normalization constant) \\ 
+        \textbf{MoCo} & momentum contrastive learning, when there is no enough diverse negatives in a batch, a memory bank is built for generating new negative embeddings by exponential moving averaging \\
+        \textbf{promot engineering} & disambiguating phrases added hand when the raw class names can be ambiguous across/within a dataset \\
+        \textbf{domain adaptation} & inputs from different domain (source and target domains), $\mathcal{X}_s\neq\mathcal{X}_t$, but outputs from a common domain, $\mathcal{Y}$, 
+        \textit{dual} of \textbf{transfer learning}, which has inputs from a common domain and outputs from different domains. \\
+        \textbf{pseudo labeling} & aka self-training, use the predictions from the model itself on unlabeled data (by \textit{offline} or \textit{online}) as ``labels'' for subsequent training. \\
+        \textbf{confirmation bias} & the model is continually confirming its own (incorrect) bias about the decision rule if the model generates incorrect predictions for unlabeled data and retrains on them.\\
+        \textbf{cluster assumption} & the decision boundary between classes should fall in a low-density region of the data manifold which can be estimated from the unlabeled data and derives \textit{entropy minimization}. \\
+        \textbf{manifold assumption} & Two datapoints ``similar'' in some meaningful way are expected to share a label. \\
+        \textbf{transductive learning} & learn to predict labels for a \textbf{fixed} unlabeled dataset, rather than learn a model that generalizes labels for any new input, which is called \textbf{inductive learning}. \\
+        \textbf{meta learning} & learning the parameters of the estimator itself ($\hat{f}(\bm{x};\bm{\theta}(\mathcal{D}_{j+1};{\color{red}\bm{\phi}(\mathcal{D}_{1:J})}))$, learning to learn). \\
+        \textbf{MAML} & model-agnostic meta-learning, $\bm{\phi}^*=\argmax_{\bm{\phi}}\frac{1}{J}\sum_{j=1}^J\log p(\mathcal{D}_\text{val}^j|\hat{\theta}_{j}(\bm{\phi},\mathcal{D}_\text{tr}^j))$, equivalent to an \textit{approximate MAP estimate} using a Gaussian prior centered at $\bm{\phi}$. \\
+        \textbf{Few-shot learning} & learn to predict fro very few labeled examples, 
+        in \textit{extreme} situations, the ``few'' can reduce to one or zero. \\
+        \textbf{C-way N-shot classification} & a common way to evaluate FSL methods, classifying $C$ classes using only $N$ examples for \textit{each} class.\\
+        \textbf{Matching networks} & learn a metric measuring the similarity on some \textit{external} dataset, and then compare the new input $\bm{x}$ to all the labeled examples $\bm{x}_n$ in the context. \\
+        \textbf{weakly supervised learning} & the labels $y$ in training set are not exact (a general term) for classification. \\
+        \textbf{label smoothing} & A distribution, $p(y|\bm{x}_n)$, compared with the original delta function, is applied for each label in the cross entropy loss $\mathcal{L}(\bm{\theta})=-\sum_n\sum_y {\color{blue}p(y|\bm{x}_n)}\log q_{\bm{\theta}}(y|\bm{x}_n)$ \\
+        \textbf{multi-instance learning} & only labeling a bag/group of examples \\
+        \textbf{distance supervision} & use some known facts to label other unlabled data based on the other data's \textit{semantic relationship} (I guess) with the fact. \\
+        \bottomrule
+    \end{tabular}}
+    \label{tab:fewexamplars}
+\end{table}
+
+\subsection{Learning with Fewer Labeled Examples}
+
+\textbf{Theoretical justification} for \textbf{data augmentation}: a way to algorithmically inject prior knowledge
+\begin{align}
+    &~p_\mathcal{D}(\bm{x},\bm{y}) = \frac{1}{N}\sum_{n=1}^N\delta(\bm{x}-\bm{x}_n)\delta(\bm{y}-\bm{y}_n)\\
+    \to
+    &~p_\mathcal{D}(\bm{x},\bm{y}|A) = \frac{1}{N}\sum_{n=1}^N p(\bm{x}|\bm{x}_n,A)\delta(\bm{y}-\bm{y}_n)\\
+    \text{e.g.}&~~p(\bm{x}|\bm{x}_n,A)=\mathcal{N}(\bm{x}|\bm{x}_n,\sigma^2\mathbf{I})
+\end{align}
+
+
+ \textbf{Contrastive task} creates pairs of examples semantically similar to each other (e.g. using data augmentation methods),
+ and then to ensure that the distance between their representations is closer than the distance between unrelated examples. 
+ For examples,
+\begin{enumerate}[(1)]
+    \item \textbf{SimCLR}: \textit{Simple contrastive learning of visual representations},\unsure{
+    consistent with the basic concept of contrastive learning
+    }
+    maximize the similarity (cosine similarity) between the views augmented from the same sample and minimize that between unrelated views from different samples.
+    \item \textbf{CLIP}: \textit{Contrastive Language-Image Pre-training}, determine if one strings is more likely to be the correct text paired with the given image than another string,\unsure{
+    the idea of contrastivity is similar with SimCLR but the counterparts to paired are image and text, respectively, instead of augmented images from one, 
+    so the normalization of embedding is required considering heterogeneous embedding spaces are involved.
+    }
+    which can be used to \textbf{zero-shot classification}.
+\end{enumerate}
+
+\textbf{Domain adversarial learning} minimizes the loss of classifying label $y$ but maximize the loss of classifying the source domain $d$
+{\small\begin{gather}
+    \min_{\bm{\phi}}\max_{\bm{\theta}} \frac{1}{|\mathcal{D}_s|+|\mathcal{D}_t|} \sum_{n\in\mathcal{D}_s,\mathcal{D}_t}
+    \ell(d_n,\bm{f}(\bm{x}_n;\bm{\theta})) + \frac{1}{|\mathcal{D}_s|}\sum_{m\in\mathcal{D}_s}\ell(y_m,g(\bm{f}(\bm{x}_m;\bm{\theta});\bm{\phi})),
+\end{gather}}
+where $\bm{f}(\cdot;\bm{\theta}):\mathcal{X}_s\cup\mathcal{X}_t\to\mathcal{H}$, and $g(\cdot;\bm{\phi}):\mathcal{H}\to\mathcal{Y}$.
+This can be implemented by the \textit{gradient sign reversal} trick.
+
+
+\textbf{Input-output mutual information}: maximize the mutual information of input and output and can also derive \textit{entropy minimization}\unsure{
+Another principle is \textit{cluster assumption}
+} 
+but under a priori that all classes are equally likely. 
+\begin{gather}
+    \mathcal{I}(y;\bm{x})=\underbrace{\mathbb{E}_{\bm{x}}\sum_{i=1}^Lp(y_i|\bm{x})\log p(y_i|\bm{x})}_\text{neg. \textit{entropy minimization} obj.}
+        -\underbrace{\sum_{i=1}^L\mathbb{E}_{\bm{x}}[p(y_i|\bm{x})\log\mathbb{E}_{\bm{x}}p(y_i|\bm{x})]}_\text{equal class proba. assumption}
+\end{gather}
+
+\textbf{Co-Training}, similar to self-training, additionally assumes that there are 
+\textit{two complementary} (informative-but-independent) ``views'' of the data, 
+both of which can be used separately to train a reasonable model, and for a given new input, 
+only high-confident pseudo label is used for retraining.
+
+\textbf{Tri-Training} trains three models based on independently sampled datasets with replacement, 
+where the pseudo-labels output agree on two will be feeded to retrain the third, and repreat the process iteratively.
+
+\textbf{Label propagation on graphs}, according to the manifold assumption, propagates the known labels across
+edges of the graph in such a way that there is minimal disagreement in the labels of a given node's neighbors
+according to the similarity between samples.
+\begin{align}
+    \mathbf{Y}\leftarrow&~\mathbf{TY}\\
+    Y_{ic}\leftarrow&~\frac{Y_{ic}}{\sum_{k}Y_{ik}}
+\end{align}
+where $\mathbf{T}\in\mathbf{R}^{(M+N)\times(M+N)}$ is transition matrix defined by some measure of similarity between sample $i$ and $j$, $w_{ij}$ that $T_{ij}=\frac{w_{ij}}{\sum_{k}w_{ij}}$, and
+$\mathbf{Y}\in\mathbb{R}^{(M+N)\times C}$ is label matrix representing the probability of classes for each sample.
+
+\textbf{Consistency regularization}: the perturbing on a given datapoint should not cause the model's output to change \textbf{dramatically}.
+\begin{gather}
+    \mathcal{L}(\bm{\theta}) = -\sum_{i=1}^M\log p(y=y_i|\bm{x}_i;\bm{\theta}) + \lambda\sum_{j=1}^N\underbrace{D(p(y|\bm{x}_j;\bm{\theta}),p(y|\bm{x}'_j;\bm{\theta}))}_{\text{output diff. of }\bm{x}~\&~\bm{x}'\sim q(\bm{x}'|\bm{x})}
+\end{gather}\unsure{
+The difference measurement $D(\cdot,\cdot)$ can be L2 distance or KL divergence, etc
+}
+The $\lambda$ takes value from 0 and increases over the cource of training since the prediction is bad during the beginning.
+The transformation $q(\bm{x}'|\bm{x})$ can be strong data augmentations that heavily corrupt the input but still do not change the label,
+which requires the expert knowledge or learn a $\bm{\delta}$ of $\bm{x}$, called \textbf{virtual adversarial training (VAT)}, such that
+\begin{align}
+    \bm{\delta}
+    =&~\argmax_{\bm{\delta}}\infdiv{p(y|\bm{x};\bm{\theta})}{p(y|\bm{x}+\bm{\delta};\bm{\theta})} \\
+    \approx
+    \bm{\delta}
+    \leftarrow&~\left.\nabla_{\bm{\delta}}\infdiv{p(y|\bm{x};\bm{\theta})}{p(y|\bm{x}+\bm{\delta};\bm{\theta})}\right|_{\bm{\delta=\xi\bm{d}}} \\
+    \text{initializing}&~\bm{d}\sim\mathcal{N}\\
+    \Rightarrow \bm{x}'
+    =&~\bm{x}+\frac{\epsilon}{\|\bm{\delta}\|_2}\bm{\delta}
+\end{align}
+
+\textbf{VAE based semi-supervised learning} use VAE as the backbone to transform $\bm{x}$ from a latent variable $\bm{z}$ 
+whose dimensions are independent and lower than that of original, \textit{without} (\textbf{M1})\unsure{
+M1 is the standard VAE to get a low dimension representation of $\bm{x}$ without the labels.
+} or \textit{with} (\textbf{M2}) label $y$ like Figure \ref{fig:vaem1m2}.\unsure{
+To understand the following deduction, refer to the EM algorithm and ELBO in Chapter 8 Optimization.
+}.
+\begin{align}
+    p_{\bm{\theta}}(\bm{x},y)
+    &= p_{\bm{\theta}}(y)p_{\bm{\theta}}(\bm{x}|y) = p_{\bm{\theta}}(y)\int p_{\bm{\theta}}(\bm{x}|y,\bm{z})p_{\bm{\theta}}(\bm{z})d\bm{z}~~~\text{(labeled data)} \\
+    \text{with}~&\begin{cases}
+        p_{\bm{\theta}}(\bm{z}) = \mathcal{N}(\bm{z}|\overbrace{\bm{\mu}_{\bm{\theta}}, \mathbf{\Sigma}_{\bm{\theta}}}^{\text{usually standard}~\mathcal{N}}) & \text{latent prior} \\
+        p_{\bm{\theta}}(y) = \text{Cat}(y|\bm{\pi}_{\bm{\theta}}) & \text{label prior} \\
+        p_{\bm{\theta}}(\bm{x}|y,\bm{z}) = p(\bm{x}|\bm{f}_{\bm{\theta}}(y,\bm{z})) & \text{likelihood}
+    \end{cases} \\
+    {\color{purple}q_{\bm{\phi}}(\bm{z}|y,\bm{x})} 
+    &{\color{purple}= \mathcal{N}(\bm{z}|\mu_{\bm{\phi}}(y,\bm{x}),\mathrm{diag}(\sigma^2_{\bm{\phi}}(\bm{x})))} \label{eq:m2confuse}\\
+    \log p_{\bm{\theta}}(\bm{x},y) 
+    &\geq \mathbb{E}_{q_{\bm{\phi}}(\bm{z}|\bm{x},y)}\underbrace{\left[
+        \log p_{\bm{\theta}}(\bm{x}|y,\bm{z}) + \log p_{\bm{\theta}}(y) + \log p_{\bm{\theta}}(\bm{z}) - \log q_{\bm{\phi}}(\bm{z}|\bm{x},y)
+    \right]}_{{p_{\bm{\theta}}(\bm{x},y,\bm{z})}/{q_{\bm{\phi}}(\bm{z}|\bm{x},y)}}\\
+    &=:-{\color{purple}L(\bm{x},y;\bm{\theta},\bm{\phi})} \\
+    p_{\bm{\theta}}(\bm{x})
+    &=  \int p_{\bm{\theta}}(y)\int p_{\bm{\theta}}(\bm{x}|y,\bm{z})p_{\bm{\theta}}(\bm{z})d\bm{z}dy~~~\text{unlabeled data} \\
+    {\color{teal}q_{\bm{\phi}}(\bm{z},y|\bm{x})} 
+    &{\color{teal}=q_{\bm{\phi}}(\bm{z}|\bm{x})q_{\bm{\phi}}(y|\bm{x})} \\ 
+    {\color{teal}q_{\bm{\phi}}(\bm{z}|\bm{x})}
+    &{\color{teal} = \mathcal{N}(\bm{z}|\bm{\mu}_{\bm{\phi}}(\bm{x}),\mathrm{diag}(\sigma^2_{\bm{\phi}}(\bm{x})))} \\
+    {\color{blue}q_{\bm{\phi}}(y|\bm{x})}
+    &{\color{blue}=\boxed{\mathrm{Cat}(y|\bm{\pi}_{\bm{\phi}}(\bm{x}))} }~~~\text{classifier for unlabeled data}\\
+    \log p_{\bm{\theta}}
+    &\geq \mathbb{E}_{q_{\bm{\phi}}(\bm{z},y|\bm{x})}\underbrace{\left[
+        \log p_{\bm{\theta}}(\bm{x}|y,\bm{z}) + \log p_{\bm{\theta}}(y) + \log p_{\bm{\theta}}(\bm{z}) - \log q_{\bm{\phi}}(\bm{z},y|\bm{x})
+    \right]}_{p_{\bm{\theta}}(\bm{x},y,\bm{z})/q_{\bm{\phi}}(\bm{z},y|\bm{x})} \\
+    &= -\sum_{y} q_{\bm{\phi}}(y|\bm{x}){\color{purple}L(\bm{x},y;\bm{\theta},\bm{\phi})} + \mathbb{H}(q_{\bm{\phi}}(y|\bm{x})) \\
+    &=: -{\color{teal}U(\bm{x};\bm{\theta},\bm{\phi})}\\
+    \Rightarrow \mathcal{L}(\bm{\theta},\bm{\phi}) 
+    &= \mathbb{E}_{(\bm{x},y)\sim\mathcal{D}_L}{\color{purple}L(\bm{x},y;\bm{\theta},\bm{\phi})}\\
+    &~~~+ \mathbb{E}_{\bm{x}\sim\mathcal{D}_U}{\color{teal}U(\bm{x};\bm{\theta},\bm{\phi})} \\
+    &~~~+\alpha \mathbb{E}_{(\bm{x},y)\sim\mathcal{D}_L}[-\log {\color{blue}q_{\bm{\phi}}(y|\bm{x})}]
+\end{align}\unsure{
+The notations here seems to be confusing, needed to be verified.
+{\color{red}This part is still not very understood... And the notation used here may be incorrect.}
+}
+
+\input{figs/vaem1m2}
+
+\textbf{Active learning} identify the true predictive mapping $y=f(\bm{x};\bm{\theta})$ by querying \textit{as few points as possible} such as in \textit{Bayesian optimization} and \textit{experiment design}.\unsure{
+highlight choosing strategy of the labeled data points
+}
+\begin{itemize}
+    \item \textbf{decision-theoretic approach}: explore a new point $\bm{x}$ with the minimal average \textit{risk increment} over all kind of output $y$ and parameters $\bm{\theta}$.
+    \begin{align}
+        U(\bm{x})\triangleq&~\mathbb{E}_{p(y|\bm{x}|\mathcal{D})}\left[
+            \min_{a}(R(a|\mathcal{D})-R(a|\mathcal{D},(\bm{x},y)))
+        \right]\\
+        R(a|\mathcal{D}) =&~\mathbb{E}_{p(\bm{\theta}|\mathcal{D})}\ell(\bm{\theta},a)
+    \end{align}
+
+    \item \textbf{information-theoretic approach}: similar with the decision-theoretic one but considering to maximize \textit{information gain} about the parameters $\bm{\theta}$
+    \begin{align}
+        U(\bm{x}) =&~ \mathbb{H}(p(\bm{\theta}|\mathcal{D})) - \mathbb{E}_{p(y|\bm{x},\mathcal{D})}\mathbb{H}(p(\bm{\theta}|\mathcal{D},(\bm{x},y))) \\
+        =&~ \mathbb{I}(\bm{\theta},y|\mathcal{D},\bm{x}) \\
+        =&~ \underbrace{\mathbb{H}(p(y|\bm{x},\mathcal{D}))}_\text{\makecell{max. entropy\\ sampling}} - \underbrace{\mathbb{E}_{p(\bm{\theta}|\mathcal{D})}\mathbb{H}(p(y|\bm{x},\bm{\theta}))}_\text{\makecell{pick example with\\confident prediction}} \label{eq:actlearninfo}
+    \end{align}
+    which will select examples $\bm{x}$ making confident predictions which are highly diverse. 
+    Therefore this approach is called \textbf{Bayesian active learning by disagreement (BALD)}.
+
+    \item \textbf{batch active learning} or \textbf{BatchBALD}\unsure{
+    The above strategies are greedy (myopic) search, select a optimal sample at one time.
+    } collect a set of $B$ samples $(\mathbf{X}, \mathbf{Y})$ by a sequential greedy search, which is within a \textit{constant factor} of optimal.
+\end{itemize}
+
+ 
+

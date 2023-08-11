@@ -1,0 +1,36 @@
+\begin{figure}[hptb]
+    \centering
+    \parbox{0.7\textwidth}{
+    \begin{framed}
+    \parbox{.2\textwidth}{%
+        \subcaptionbox{M1\label{fig:vaem1}}{\centering
+        \begin{tikzpicture}[
+        roundnode/.style={circle, draw=violet!60, fill=violet!5, minimum size=7mm},
+        ->,>=stealth',auto,node distance=3.5em,thick]
+        \tikzstyle{every node}=[font=\small,scale=0.9]
+            \node[roundnode] (data) {$\bm{x}$};
+            \node[roundnode, right = of data] (latent) {$\bm{z}$};
+              
+            \draw[->] (latent)  -- (data);
+        \end{tikzpicture}
+        }}
+    \hskip5em
+    \parbox{.35\textwidth}{%
+        \subcaptionbox{M2\label{fig:vaem2}}{
+        \begin{tikzpicture}[
+        roundnode/.style={circle, draw=violet!60, fill=violet!5, minimum size=7mm},
+        ->,>=stealth',auto,node distance=3.5em,thick]
+        \tikzstyle{every node}=[font=\small,scale=0.9]
+            \node[roundnode] (data) {$\bm{x}$};
+            \node[roundnode, left = of data] (label) {$y$};
+            \node[roundnode, right = of data] (latent) {$\bm{z}$};
+              
+            \draw[->] (latent) -- (data);
+            \draw[->] (label) -- (data);
+        \end{tikzpicture}
+        }}
+    \end{framed}
+    }
+    \caption{Two structures of VAE model in semi-supervised learning}
+    \label{fig:vaem1m2}
+\end{figure}

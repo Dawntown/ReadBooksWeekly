@@ -1,0 +1,68 @@
+\begin{figure}[htpb]
+    \centering
+    \begin{tikzpicture}[
+    roundnode/.style={circle, draw=violet!60, fill=violet!5, minimum size=7mm},
+    ->,>=stealth',auto,node distance=3.5em,thick,show background rectangle]
+    \tikzstyle{every node}=[font=\small,scale=0.9]
+      \node[]
+      (anchor0)
+      {};
+      
+      \node[above = of anchor0]
+      (input1)
+      {\color{teal}$\bm{x}_1$};
+      
+      \node[below = of anchor0]
+      (input2)
+      {\color{teal}$\bm{x}_2$};
+      
+      \node[roundnode, right = of input1]
+      (func3)
+      {$\bm{f}_3$};
+
+      \node[right = of anchor0]
+      (anchor1)
+      {};
+      
+      \node[roundnode, right = of input2]
+      (func4)
+      {$\bm{f}_4$};
+      
+      \node[roundnode, right = of anchor1]
+      (func5)
+      {$\bm{f}_5$};
+
+      \node[roundnode, right = of func5]
+      (func6)
+      {$\bm{f}_6$};
+      
+      \node[roundnode, right = of func6]
+      (func7)
+      {$\bm{f}_7$};
+
+      \node[right = of func7]
+      (x7)
+      {$\bm{x}_7={\color{purple}\bm{o}}$};
+      
+      \draw[->] (input1)  --  (func3);
+      \draw[->] (input1)  --  (func5);
+      \draw[->] (input2)  --  (func4);
+      \draw[->] (func3)  --node{$\bm{x}_3$}  (func4);
+      \draw[->] (func4)  --node{$\bm{x}_4$}  (func5);
+      \draw[->] (func4)  --node{$\bm{x}_4$}  (func7);
+      \draw[->] (func5)  --node{$\bm{x}_5$}  (func6);
+      \draw[->] (func6)  --node{$\bm{x}_6$}  (func7);
+      \draw[->] (func7)  --  (x7);
+    \end{tikzpicture}
+    \caption{Example for the computation graph of $f(\bm{x}_1,\bm{x}_2)=x_2e^{x_1}\sqrt{x_1+x_2e^{x_1}}$}
+    {\footnotesize
+    \begin{align*}
+        x_3 &=~ f_3(x_1) = e^{x_1} \\
+        x_4 &=~ f_4(x_2,x_3) = x_2x_3 \\
+        x_5 &=~ f_5(x_1,x_4) = x_1 + x_4 \\
+        x_6 &=~ f_6(x_5) = \sqrt{x_5} \\
+        x_7 &=~ f_7(x_4,x_6) = x_4x_6
+    \end{align*}
+    }
+    \label{fig:compgraph}
+\end{figure}

@@ -1,0 +1,415 @@
+\textbf{Gaussian process}: define distributions over function of the form $f:\mathcal{X}\to\mathbb{R}$,\unsure{
+The function is unknown and non-parametric. The target of GP is to inference the value of function wrt an new input implicitly by defining the relationship between a set of inputs.
+}
+i.e. giving a distribution for the labels of unlabeled inputs given the observations labeled.
+The \textbf{key assumption} is that the function values at a set of $M>0$ inputs,\unsure{
+including training set $(\mathbf{X}_{\sim},\bm{y}_{\sim})$ that have observed values of inputs 
+and unlabeled but of interest inputs $(\mathbf{X}_*,\bm{Y}_*)$
+} 
+$\bm{f}(\mathbf{X})=[f(\bm{x}_1),\cdots,f(\bm{x}_M)]$ that can be partitioned to two parts, 
+data, $\mathcal{D}=(\mathbf{X}_\dagger,\bm{y}_\dagger)$, and new inputs, $\mathbf{X}_*$ with $\bm{Y}_*\leftarrow\bm{f}(\mathbf{X}_*)$ unknown, WLOG, 
+is \uline{jointly Gaussian} with 
+mean $\bm{\mu} = [m(\bm{x}_1),\cdots,m(\bm{x}_M)]^\mathsf{T}$ and 
+covariance $\mathbf{\Sigma}$ such that $\Sigma_{ij} = \mathcal{K}(\bm{x}_i,\bm{x}_j)$ \unsure{
+Recall the {conditionals of an MVN} in Chapter 4.
+The conditional distribution of $\bm{Y}_*$ can be inferred given the full distribution of $\bm{Y}=\left[\bm{Y}_\dagger^\mathsf{T},\bm{Y}_*^\mathsf{T}\right]^\mathsf{T}$ and the observation $\bm{Y}_\dagger=\bm{y}_\dagger$.}\unsure{
+It is worth noting that every parameter in the density function should \uline{be known} or \uline{be estimated from data}. 
+For example, the mean function $m$ is set to be $0$, 
+and the kernel function $\mathcal{K}$ is set to be RBF with hyper-parameters $\sigma_f$ and $\ell$:
+$\mathcal{K}(\bm{x},\bm{y})=\sigma_f^2\exp(-\frac{1}{2\ell^2}\|\bm{x}-\bm{y}\|_2^2)$.
+}
+\begin{align}
+    \bm{f}(\mathbf{X})
+    =&~ \left[\begin{array}{c}
+        \bm{f}(\mathbf{X}_\dagger) \\
+        \bm{f}(\mathbf{X}_*)
+    \end{array}\right]^\mathsf{T} 
+    \sim \mathcal{N}{\bm{\mu},\mathbf{\Sigma})} \\
+    \bm{\mu} 
+    =&~ \left[\begin{array}{c}
+        \bm{m}(\mathbf{X}_\dagger) \\
+        \bm{m}(\mathbf{X}_*)
+    \end{array}\right] \\
+    =&: \left[\begin{array}{c}
+        \bm{\mu}_\dagger \\
+        \bm{\mu}_*
+    \end{array}\right] \\
+    \mathbf{\Sigma}
+    =&~ \mathcal{K}(\mathbf{X}) \\
+    =&~ \left[\begin{array}{cc}
+        \mathcal{K}(\mathbf{X}_\dagger,\mathbf{X}_\dagger) & \mathcal{K}(\mathbf{X}_\dagger,\mathbf{X}_*) \\
+        \mathcal{K}(\mathbf{X}_*,\mathbf{X}_\dagger) & \mathcal{K}(\mathbf{X}_*,\mathbf{X}_*) 
+    \end{array}\right] \\
+    =&: \left[\begin{array}{cc}
+        \mathbf{K}_{\dagger\dagger} & \mathbf{K}_{\dagger*} \\
+        \mathbf{K}_{\dagger*}^\mathsf{T} & \mathbf{K}_{**} 
+    \end{array}\right]
+\end{align}
+\begin{gather}
+    \Rightarrow 
+    \boxed{p(\bm{f}_*)|\mathbf{X}_*,\mathcal{D}) = {\color{red}\textbf{?}}}
+\end{gather}
+\begin{itemize}
+    \item \textbf{noise-free observation}: $y_n=f(\bm{x}_n)$\unsure{
+    The computation of posterior distribution involves the inverse operation that may cause \textit{numerical and computational issues}. It can be solved by Cholesky decomposition, i.e. $\mathbf{K}_\sigma=\mathbf{LL}^\mathsf{T}$.
+    }
+    \begin{align}
+        p({\bm{f}}_*|\mathbf{X}_*,\mathcal{D}) 
+        =&~ \mathcal{N}({\bm{f}}_*|\Tilde{\bm{\mu}}_*,\Tilde{\bm{\Sigma}}_*) \\
+        \Tilde{\bm{\mu}}_*
+        =&~ \bm{\mu}_* + \mathbf{K}_{\dagger*}^\mathsf{T}\mathbf{K}_{\dagger\dagger}^{-1}(\bm{f}_\dagger-\bm{\mu}_\dagger) \\
+        \Tilde{\bm{\Sigma}}_*
+        =&~ \mathbf{K}_{**} - \mathbf{K}_{\dagger*}^\mathsf{T}\mathbf{K}_{\dagger\dagger}^{-1}\mathbf{K}_{\dagger*}
+    \end{align}
+    \item \textbf{noisy observation}: $y_n=f(\bm{x}_n) + \epsilon_n$, where $\epsilon_n\sim\mathcal{N}(0,\sigma^2)$\unsure{
+    The noise is only considered in the observed data (training data), but the prediction process is regarded as noise free.
+    }
+    \begin{align}
+        \mathrm{Cov}(\bm{y}_\dagger|\mathbf{X}_\dagger)
+        =&~ \mathbf{K}_{\dagger\dagger}+\sigma^2\mathbf{I}=:\mathbf{K}_\sigma \\
+        \left[\begin{array}{c}
+            \bm{y}_\dagger \\
+            \bm{f}_*
+        \end{array}\right]
+        =&~\mathcal{N}\left(\left[\begin{array}{c}
+            \bm{\mu}_\dagger \\
+            \bm{\mu}_*
+        \end{array}\right],\left[\begin{array}{cc}
+            {\color{red}\mathbf{K}_\sigma} & \mathbf{K}_{\dagger*} \\
+            \mathbf{K}_{\dagger*}^\mathsf{T} & {\color{blue}\mathbf{K}_{**}}\label{eq:gpnoisy}
+        \end{array}\right]\right)
+    \end{align}
+\end{itemize}
+
+\textbf{Bayesian linear regression}: linear regression whose weights are r.v.s and 
+follow prior distributions, such as \unsure{
+BLR needs to work on $\bm{\phi}(\bm{x})$ with finite dimensions explicitly, but GP can work on $\mathbf{K}(=\mathbf{\Phi\Phi}^\mathsf{T})$ implicitly.
+}
+\begin{align}
+    y =&~ f(\bm{x})+\epsilon = \bm{w}^\mathsf{T}\bm{\phi}(\bm{x}) + \epsilon \\
+    \epsilon \sim&~ \mathcal{N}(0,\sigma^{-2}) \\
+    \bm{w} \sim&~ \mathcal{N}(\bm{0},\bm{\Sigma}_w) \\
+    \Rightarrow
+    p(\bm{w}|\mathcal{D}) =&~ \mathcal{N}(\bm{w}|\sigma^{-2}\mathbf{A}^{-1}\mathbf{\Phi}^\mathsf{T}\bm{y},\mathbf{A}^{-1}) \\
+    \mathbf{\Phi} :=&~ [\bm{\phi}(\bm{x}_1),\cdots,\bm{\phi}(\bm{x}_N)]^\mathsf{T}\in\mathbb{R}^{N\times D} \\
+    \mathbf{A} :=&~ \sigma^{-2}\mathbf{\Phi}^\mathsf{T}\mathbf{\Phi} + \mathbf{\Sigma}_w^{-1} \\
+    \Rightarrow 
+    p(f_*|\bm{x}_*,\mathcal{D})
+    =&~ \mathcal{N}(f_*|\sigma^{-2}\bm{\phi}_*^\mathsf{T}\mathbf{A}^{-1}\mathbf{\Phi}^\mathsf{T}\bm{y},\bm{\phi}_*^\mathsf{T}\mathbf{A}^{-1}\bm{\phi}_*)\\
+    =&: \mathcal{N}(f_*|\Tilde{{\mu}}_*,\Tilde{{\Sigma}}_*) \\
+    \Tilde{{\mu}}_*
+    =&~ \bm{\phi}_*^\mathsf{T}\mathbf{\Sigma}_w\mathbf{\Phi}^\mathsf{T}(\mathbf{K}+\sigma^2\mathbf{I})^{-1}\bm{y} \label{eq:blrnote}\\
+    =&~ \bm{k}_*^\mathsf{T}\mathbf{K}_\sigma^{-1}\bm{y} \\
+    \Tilde{{\Sigma}}_*
+    =&~ \bm{\phi}_*^\mathsf{T}\mathbf{\Sigma}_w\bm{\phi}_* - \bm{\phi}_*^\mathsf{T}\mathbf{\Sigma}_w\mathbf{\Phi}^\mathsf{T}(\mathbf{K}+\sigma^2\mathbf{I})^{-1}\mathbf{\Phi}\mathbf{\Sigma}_w\bm{\phi}_*\\
+    =&~ k_{**} - \bm{k}_*^\mathsf{T}\mathbf{K}_\sigma^{-1}\bm{k}_*
+\end{align}
+where $\mathbf{K}=\mathbf{\Phi}\mathbf{\Sigma}_w\mathbf{\Phi}^\mathsf{T}$, $\bm{k}_*=\mathbf{\Phi}\mathbf{\Sigma}_w\bm{\phi}_*$, and ${k}_{**}=\bm{\phi}_*^\mathsf{T}\mathbf{\Sigma}_w\bm{\phi}_*$\unsure{
+Note: this model assumes the independency across test samples, 
+so the new input $\bm{x}_*$ can be predicted one by one.
+}
+and Equation (\ref{eq:blrnote}) comes from\unsure{
+\color{red}idk how to deduce it...
+}
+\begin{align}
+    \Tilde{{\mu}}_*
+    =&~ \sigma^{-2}\bm{\phi}_*^\mathsf{T}\mathbf{A}^{-1}\mathbf{\Phi}^\mathsf{T}\bm{y} \\
+    =&~ \sigma^{-2}\bm{\phi}_*^\mathsf{T}\left[
+        \sigma^{-2}\mathbf{\Phi}^\mathsf{T}\mathbf{\Phi} + \mathbf{\Sigma}_w^{-1}
+    \right]^{-1}\mathbf{\Phi}^\mathsf{T}\bm{y} \\
+    =&~ \bm{\phi}_*^\mathsf{T}\mathbf{\Sigma}_w\left[
+        \mathbf{\Phi}^\mathsf{T}\mathbf{\Phi}\mathbf{\Sigma}_w + \sigma^{2}\mathbf{I}_D
+    \right]^{-1}\mathbf{\Phi}^\mathsf{T}\bm{y} \\
+    =&~ \bm{\phi}_*^\mathsf{T}\mathbf{\Sigma}_w\mathbf{\Phi}^\mathsf{T}\left[
+        \mathbf{\Phi}\mathbf{\Sigma}_w\mathbf{\Phi}^\mathsf{T} + \sigma^{2}\mathbf{I}_N
+    \right]^{-1}\bm{y}~~\text{Lemma \ref{lem:woodburyvar}} \label{eq:lemwoodburyvar}\\
+    =&~ \bm{\phi}_*^\mathsf{T}\mathbf{\Sigma}_w\mathbf{\Phi}^\mathsf{T}\left[
+        \mathbf{K} + \sigma^2\mathbf{I}_N
+    \right]^{-1}\bm{y}
+\end{align}
+\begin{proof}
+    The proof of Step \ref{eq:lemwoodburyvar}
+    \begin{align}
+        &~{\color{teal}\left[
+            \sigma^{2}\mathbf{I}_D + \mathbf{\Phi}^\mathsf{T}\mathbf{\Phi}\mathbf{\Sigma}_w
+        \right]^{-1}}\mathbf{\Phi}^\mathsf{T} \\
+        =&~ {\color{teal}\sigma^{-2}\mathbf{I}_D - \sigma^{-2}\mathbf{I}_D\mathbf{\Phi}^\mathsf{T}\left[
+            \mathbf{I}_D + \mathbf{\Phi}\mathbf{\Sigma}_w\sigma^{-2}\mathbf{I}_D\mathbf{\Phi}^\mathsf{T}
+        \right]^{-1}\mathbf{\Phi}\mathbf{\Sigma}_w\sigma^{-2}\mathbf{I}_D} \mathbf{\Phi}^\mathsf{T}\\
+        =&~ {\color{teal}\sigma^{-2}\left\{
+            \mathbf{I}_D - \mathbf{\Phi}^\mathsf{T}\left[
+                \sigma^2\mathbf{I}_N + \mathbf{\Phi}\mathbf{\Sigma}_w\mathbf{\Phi}^\mathsf{T}
+            \right]^{-1}\mathbf{\Phi}\mathbf{\Sigma}_w
+        \right\}}\mathbf{\Phi}^\mathsf{T}\\
+        =&~ \sigma^{-2}\mathbf{\Phi}^\mathsf{T}\left\{
+            \mathbf{I}_N - \left[
+                \sigma^2\mathbf{I}_N + \mathbf{\Phi}\mathbf{\Sigma}_w\mathbf{\Phi}^\mathsf{T}
+            \right]^{-1}\left[
+                \mathbf{\Phi}\mathbf{\Sigma}_w\mathbf{\Phi}^\mathsf{T} + \sigma^2\mathbf{I}_N - \sigma^2\mathbf{I}_N
+            \right]
+        \right\}\\
+        =&~ \mathbf{\Phi}^\mathsf{T}\left[
+            \sigma^2\mathbf{I}_N + \mathbf{\Phi}\mathbf{\Sigma}_w\mathbf{\Phi}^\mathsf{T}
+        \right]^{-1}
+    \end{align}
+\end{proof}
+
+
+
+\begin{lemma}[Matrix inversion lemma]\label{lem:woodbury}
+    For $\mathbf{A}\in\mathbb{R}^{n\times n}$, $\mathbf{C}\in\mathbb{R}^{k\times k}$, 
+    $\mathbf{U}\in\mathbb{R}^{n\times k}$, and $\mathbf{V}\in\mathbb{R}^{k\times n}$.
+    \begin{gather}
+        (\mathbf{A}+\mathbf{UCV})^{-1} 
+        = \mathbf{A}^{-1} 
+        - \mathbf{A}^{-1}\mathbf{U}(
+            \mathbf{C}^{-1}
+            + \mathbf{VA}^{-1}\mathbf{U}
+        )^{-1}\mathbf{VA}^{-1}
+    \end{gather}
+    \textbf{Woodbury matrix identity} or \textbf{Woodbury formula},
+    named after Max A. Woodbury, says that the inverse of a \uline{rank-$k$ correction} of some matrix 
+    can be computed by doing a \uline{rank-$k$ correction} to the inverse of the original matrices.\footnote{\hyperlink{https://en.wikipedia.org/wiki/Woodbury_matrix_identity}{https://en.wikipedia.org/wiki/Woodbury\_matrix\_identity}}
+\end{lemma}
+
+\begin{lemma}[inverse a correction of matrices]\label{lem:invsum}
+    Special case of Lemma \ref{lem:woodbury}
+    \begin{align}
+        (\mathbf{A} + \mathbf{B})^{-1} 
+        =&~ \mathbf{A}^{-1} - \mathbf{A}^{-1}(\mathbf{B}^{-1} + \mathbf{A}^{-1})^{-1}\mathbf{A}^{-1}\\
+        =&~ \mathbf{A}^{-1} - \mathbf{A}^{-1}(\mathbf{AB}^{-1} + \mathbf{I})^{-1} \\
+        =&~ \mathbf{A}^{-1} - (\mathbf{AB}^{-1}\mathbf{A} + \mathbf{A})^{-1} \\
+        (\mathbf{A} - \mathbf{B})^{-1}
+        =&~ \mathbf{A}^{-1} + \mathbf{A}^{-1}\mathbf{B}(\mathbf{A} - \mathbf{B})^{-1} \\
+        =&~ \sum_{k=0}^\infty (\mathbf{A}^{-1}\mathbf{B})^k\mathbf{A}^{-1}
+    \end{align}
+\end{lemma}
+
+\begin{lemma}[Binomial inverse theorem]\label{lem:woodburyvar}
+    Variants of matrix inversion lemma Lemma \ref{lem:woodbury}. 
+    \begin{itemize}
+        \item For $\mathbf{A}\in\mathbb{R}^{n\times n}$, $\mathbf{B}\in\mathbb{R}^{k\times k}$, 
+        $\mathbf{U}\in\mathbb{R}^{n\times k}$, and $\mathbf{V}\in\mathbb{R}^{k\times n}$.
+        \begin{gather}
+            (\mathbf{A}+\mathbf{UBV})^{-1} 
+            = \mathbf{A}^{-1} 
+            - \mathbf{A}^{-1}\mathbf{UB}(
+                \mathbf{B}
+                + \mathbf{BVA}^{-1}\mathbf{UB}
+            )^{-1}\mathbf{BVA}^{-1}
+        \end{gather}
+
+        \item For $\mathbf{A}\in\mathbb{R}^{n\times n}$, 
+        $\mathbf{B}\in\mathbb{R}^{k\times h}$ (can be any conformable and may be singular), 
+        $\mathbf{U}\in\mathbb{R}^{n\times k}$, and $\mathbf{V}\in\mathbb{R}^{h\times n}$.
+        \begin{gather}
+            (\mathbf{A}+\mathbf{UBV})^{-1} 
+            = \mathbf{A}^{-1} 
+            - \mathbf{A}^{-1}\mathbf{U}(
+                \mathbf{I}
+                + \mathbf{BVA}^{-1}\mathbf{U}
+            )^{-1}\mathbf{BVA}^{-1}
+        \end{gather}
+    \end{itemize}
+    
+    
+\end{lemma}
+
+% \unsure{
+% \color{red}
+% $\bm{v}^\mathsf{T}\mathbf{\Sigma}_1\mathbf{\Sigma}_2\mathbf{A}\bm{u}$
+% }
+\textbf{Estimating the hyper-parameters of kernel}: besides assigning the kernel directly or 
+exhaustively searching the optimum from discrete candidates, 
+$\bm{\theta}$ can be optimized by probabilistic perspectives.
+\begin{itemize}
+    \item \textbf{Empiirical Bayes}: which marginalized out the latent Gaussian vector $\bm{f}(\bm{x})$ in noisy observation and get observation (omitting $\dagger$ symbol and using $\bm{m}(\mathbf{X})=\bm{0}$ mean function here for simplicity) part of Equation (\ref{eq:gpnoisy}), then 
+    \begin{align}
+        \mathrm{NLL}(\bm{\theta}) 
+        =&~ \log p(\bm{y}|\mathbf{X},\bm{\theta})
+        = \log \mathcal{N}(\bm{y}|\bm{0},\mathbf{K}_\sigma) \\
+        =&~ \frac{1}{2}\bm{y}^\mathsf{T}\mathbf{K}_\sigma^\mathsf{T}\bm{y} - \frac{1}{2}\log|\mathbf{K}_\sigma| - \frac{N_\mathcal{D}}{2}\log(2\pi) \\
+        \frac{\partial}{\partial\theta_j}\mathrm{NNL}(\bm{\theta})
+        =&~ \frac{1}{2}\mathrm{tr}(
+        (\underbrace{\mathbf{K}_\sigma^{-1}\bm{y}}_{\bm{\alpha}}\bm{y}^\mathsf{T}\mathbf{K}_\sigma^{-1}-\mathbf{K}_\sigma^{-1})
+        {\color{blue}\frac{\partial}{\partial\theta_j}\mathbf{K}_\sigma}
+        )
+    \end{align}
+    \item \textbf{Bayesian inference}: when available observations are limited, 
+    then point estimate of kernel parameters can result poorly,
+    so wish to approximate the \uline{posterior distribution over $\bm{\theta}$}.
+\end{itemize}
+
+\textbf{GP for classification}: once the likelihood is non-Gaussian, the posterior can not be computed exactly but the kernel parameters $\bm{\theta}$ and latent Gaussian vector $\bm{f}$\unsure{
+However, it is not a good choice to model a chance $p\in[0,1]$ using Gaussian r.v..
+}
+are approximated by \textbf{Hamiltonian Monte Carlo} method 
+by computing $\nabla_{\bm{f}}\mathcal{E}(\bm{f},\bm{\theta})$ and $\nabla_{\bm{\theta}}\mathcal{E}(\bm{f},\bm{\theta})$.
+\begin{align}
+    \mathcal{E}(\bm{f},\bm{\theta})
+    =&~ \log p(\bm{y}|\bm{f})p(\bm{f}|\mathbf{X},\bm{\theta}) \\
+    =&~ \log \mathcal{N}(\bm{f}|\mathbf{0},\mathbf{K}) + \sum_{n=1}^N \log \mathrm{Ber}(y_n|f_n) + \underbrace{\color{red}\log p(\bm{\theta})}_{?}
+\end{align}\unsure{
+\color{red}TO BE VERIFIED. This presentation in \cite{pml1Book} may be incorrect. 
+\textit{It is not important in our current research though.}
+}
+
+\textbf{The advantages and disadvantages of GPs}:
+\begin{enumerate}[{(1)}]
+    \item [pro] much more flexible
+    \item [pro] make fewer priori assumptions beyond smoothness
+    \item [pro] well designed to handle the \textit{small sample setting}.
+    \item [con] computationally intensive $O(N^3)$
+    \begin{enumerate}
+        \item \uline{sparse (inducing-point) approximations}: 
+        summarize the $N$ training points $\mathbf{X}$ into $M(\ll N)$ inducing points $\mathbf{Z}$, 
+        e.g. compressing data \textit{rigorously} using the framework of variational inference;
+        \item \uline{exploiting parallelization and kernel matrix structure}: 
+        Krylov subspace methods based on matrix vector multiplication, 
+        which can be parallelized easily (package \texttt{GPyTorch})
+        \item \uline{random feature approximation}: approximate the feature map for many shift invariant kernels using a randomly chosen finite set of $M$ basis functions, reducing the cost to $O(NM+M^3)$. See the below.
+    \end{enumerate}
+\end{enumerate}
+
+\begin{quote}
+    A single, infinitely wide layer of RBF units is equivalent to a GP with an RBF kernel and many kinds of DNNs (in the infinite limit) can be converted to an equivalent GP using a specific kind of kernel known as the neural tangent kernel.
+\end{quote}
+
+\begin{lemma}[Random features approximation for RBF kernel]\label{lem:rfarbf}
+    For the Gaussian RBF kernel $\mathcal{K}$, one can show that 
+    \begin{align}
+        \mathcal{K}(\bm{x},\bm{x}')
+        \approx&~ \bm{\phi}(\bm{x})^\mathsf{T}\bm{\phi}(\bm{x}'), \\
+        \text{where}~\phi(\bm{x})
+        \triangleq&~ \frac{1}{\sqrt{T}}\left[
+            \sin(\bm{\omega}_1^\mathsf{T}\bm{x}),\cdots,\sin(\bm{\omega}_T^\mathsf{T}\bm{x}),
+            \cos(\bm{\omega}_1^\mathsf{T}\bm{x}),\cdots,\cos(\bm{\omega}_T^\mathsf{T}\bm{x})
+        \right]\\
+        =&~ \frac{1}{\sqrt{T}}\left[
+            \sin(\mathbf{\Omega}\bm{x}),\cos(\mathbf{\Omega}\bm{x})
+        \right]\label{eq:rff} \\
+        \text{or}~\phi(\bm{x})
+        \triangleq&~ \frac{1}{\sqrt{M}\exp(\frac{\|\bm{x}\|^2}{2})}\left[
+            \exp(\bm{\omega}_1^\mathsf{T}\bm{x}),\cdots,\exp(\bm{\omega}_M^\mathsf{T}\bm{x})
+        \right]\label{eq:posfeat}
+    \end{align}
+    where $T=\frac{1}{2}M$, and $\mathbf{\Omega}\in\mathbb{R}^{T\times D}$ is a \textit{random Gaussian matrix}, 
+    $\omega_{ij}\overset{\text{iid}}{\sim}\mathcal{N}(0,\frac{1}{\sigma^2})$. 
+    The bias of the approximation \textit{decreases} as $M$ increases. 
+    The features in Equation (\ref{eq:rff}) are based on trigonometric, called \textbf{random Fourier features (RFF)}, and those in Equation (\ref{eq:posfeat}) are positive.\footnote{both of which can be \textit{orthogonal or each row} by Gram-Schmidt orthogonalization.}
+\end{lemma}
+
+\textbf{Extreme learning machines} applies the Lemma \ref{lem:rfarbf} (Random features approximation) 
+to the \textit{kernel in GP} and convert it into a \textit{linear model} of the form
+\begin{gather}
+    f(\bm{x};\bm{\theta})=\mathbf{W}\bm{\phi}(\bm{x}) = \mathbf{W}h(\mathbf{Z}\bm{x})
+\end{gather}
+where $h(a)=\frac{1}{\sqrt{M}}[\sin(a),\cos(a)]$ for RBF kernels.
+It is equivalent to a one-layer MLP with \textit{random and fixed} input-to-hidden weights.
+
+% \begin{example}[SVM with soft margin]
+% $~$
+\textbf{SVM with soft margin}\unsure{
+SVM for classification is the genuine and original support vector machine.
+SVM for regression is a variant of kernel regression with \textbf{epsilon insensitive loss function}, a variant of Huber loss. refer to the kernel bridge regression below.
+}
+    \begin{enumerate}[(1)]
+        \item \textbf{optimal objective}
+        \begin{align}
+            \min_{\bm{w},w_0,\bm{\xi}}&~\frac{1}{2}\|\bm{w}\|^2+C\sum_{n=1}^{N}\xi_n, \\
+            \mathrm{s.t.}&~\xi_n \geq 0,\\
+            &~ \Tilde{y}_n(\bm{x}_n^\mathsf{T}\bm{w}+w_0)\geq 1 - \xi_n,
+        \end{align}
+        
+        \item \textbf{Lagrangian}
+        {\small\begin{align}
+            &~\mathcal{L}(\bm{w},\bm{w}_0,\bm{\alpha},\bm{\xi},\bm{\mu})\\
+            =&~ \frac{1}{2}\bm{w}^\mathsf{T}\bm{w} + C\sum_{n=1}^N\xi_n
+            - \sum_{n=1}^N\alpha_n[\Tilde{y}_n(\bm{w}^\mathsf{T}\bm{x}_n+w_0)-1+\xi_n]
+            -\sum_{n=1}^N\mu_n\xi_n
+        \end{align}}
+        $\Rightarrow~\hat{\bm{w}}$, $\hat{w}_0$, and $\hat{\bm{\xi}}$ 
+        such that $\nabla_{\bm{w}}\mathcal{L}=0$, $\nabla_{w_0}\mathcal{L}=0$, and $\nabla_{\bm{\xi}}\mathcal{L}=0$ 
+        and plugin them back into $\mathcal{L}$.
+    
+        \item \textbf{dual problem}
+        \begin{gather}
+            L(\bm{\alpha})
+            = \sum_{i=1}^N\alpha_i - \frac{1}{2}\sum_{i=1}^N\sum_{j=1}\alpha_i\alpha_j\Tilde{y}_i\Tilde{y}_j\boxed{\bm{x}_i^\mathsf{T}\bm{x}_j}
+        \end{gather}
+    
+        \item \textbf{KKT conditions}
+        \begin{gather}
+            0 \leq \alpha_n \leq C \\
+            \sum_{n=1}^N\alpha_n\Tilde{y}_n = 0
+        \end{gather}
+        If $\alpha_n=0$, the point is ignored. 
+        If $0 < \alpha_n < C$ then $\xi_n=0$, 
+        the point lies on the margin. 
+        If $\alpha_n = C$, the point can lie inside the margin, 
+        and can either be correctly classified if $\xi_n \leq 1$, or misclassified if $\xi_n > 1$. 
+        Hence $\sum_{n}\xi_n$ is an upper bound on the number of misclassified points.
+        \item \textbf{prediction function}
+        \begin{align}
+            \hat{y}(\bm{x}) =&~ \mathrm{sign}(f(\bm{x})) \\
+            f(\bm{x}) 
+            =&~ \hat{w}^\mathsf{T}\bm{x} + \hat{w}_0 \\
+            =&~ \sum_{n\in\mathcal{S}}\hat{\alpha}_n\Tilde{y}_n\boxed{\bm{x}_n^\mathsf{T}\bm{x}} 
+            + \frac{1}{|\mathcal{S}|}\sum_{i\in\mathcal{S}}\left[
+                \Tilde{y}_i - \sum_{j\in\mathcal{S}}\hat{\alpha}_j\Tilde{y}_j\boxed{\bm{x}_j^\mathsf{T}\bm{x}_i}
+            \right] \\
+            =&~ \sum_{n\in\mathcal{S}}\hat{\alpha}_n\Tilde{y}_n\mathcal{K}(\bm{x}_n,\bm{x}) 
+            + \frac{1}{|\mathcal{S}|}\sum_{i\in\mathcal{S}}\left[
+                \Tilde{y}_i - \sum_{j\in\mathcal{S}}\hat{\alpha}_j\Tilde{y}_j\mathcal{K}(\bm{x}_j,\bm{x}_i)
+            \right]
+        \end{align}
+        \textbf{Kernel trick} $\mathcal{K}(\bm{x}_n,\bm{x})$ \textit{generalizes} the applications of SVM.
+        \item \textbf{probability output}
+        \begin{itemize}
+            \item \uline{Platt scaling}: regard $f(\bm{x})=\log\frac{p(y=1|\bm{x})}{p(y=0|\bm{x})}$
+            \begin{gather}
+                p(y=1|\bm{x},\bm{\theta}) = \sigma(af(\bm{x})+b)
+            \end{gather}
+            \item \uline{RVM, a probabilistic kernel classifier}\unsure{in \cite{pml1Book}, it has the overwhelming performance over L1VM, L2VM, and SVM: sparsest, fastest, probabilistic, multiclass, non-Mercer kernel, EB for optimizing kernel, but non-convex for optimizing $\bm{w}$}: 
+            only keep the kernel trick to generate a set of new features
+            \begin{gather}
+                \phi(\bm{x};\mathbf{X})=\mathcal{K}(\mathbf{X},\bm{x})
+            \end{gather}
+            of length $N$ and 
+            then feed it into a discriminative model with some regularization like $\ell_1$ (L1VM) or empirical Bayes\footnote{automatic relevancy determination, ARD} (relevance vector machine, RVM) for sparse results.
+        \end{itemize}
+    \end{enumerate}
+% \end{example}
+
+\textbf{Kernel bridge regression (KBR)} is equivalent with \textit{bridge regression} that is rewritten by linear kernel form $\mathbf{XX}^\mathsf{T}=:\mathbf{K}$
+but the kernel part can be generalized to a wide applications $\mathbf{K}=\mathcal{K}(\mathbf{X},\mathbf{X})$. 
+\begin{align}
+    f(\bm{x};\bm{w}) 
+    =&~ \bm{x}^\mathsf{T}\bm{w} \\
+    =&~ \bm{x}^\mathsf{T}\mathbf{X}^\mathsf{T}(\mathbf{XX}^\mathsf{T}+\lambda\mathbf{I}_N)^{-1}\bm{y}\\
+    =&~ \mathcal{K}(\mathbf{X},\bm{x})^\mathsf{T}(\mathcal{K}(\mathbf{X},\mathbf{X})+\lambda\mathbf{I}_N)^{-1}\bm{y}
+\end{align}
+
+\textbf{SVM for regression} is similar with KBR but with sparse coefficients, allowing to only record a part data for kernel trick by a special loss, \textbf{epsilon insensitive loss},\unsure{
+If the predicted value are very close to the observed value, lying inside an $\epsilon$-tube around the prediction, 
+the loss of this sample is ignored, i.e. ``throw away'' this data point.
+}
+whose textbf{optimal objective} is 
+\begin{align}
+    \min_{\bm{w},w_0}&~\lambda\|\bm{w}\|^2 + \sum_{n=1}^{N_\mathcal{D}}L_{\epsilon}(y_n,\hat{y}_n) \\
+    &~\hat{y}_n = \bm{w}^\mathsf{T}\bm{x}_n + w_0 \\
+    &~L_{\epsilon}(y_n,\hat{y}_n) \triangleq  
+    \begin{cases}
+    0                       & |y-\hat{y}| < \epsilon \\
+    |y-\hat{y}|-\epsilon    & \text{otherwise}
+    \end{cases}
+\end{align}
+which are equivalent to
+\begin{align}
+    \min_{\bm{w},w_0,\bm{\xi}^+,\bm{\xi}^-}&~\frac{1}{2}\|\bm{w}\|^2 + C\sum_{n=1}^{N_\mathcal{D}}(\xi^+_n+\xi^-_n) \\
+    \mathrm{s.t.}
+    &~y_n\leq f(\bm{x}_n) + \epsilon + \xi^+_n \\
+    &~y_n\geq f(\bm{x}_n) - \epsilon - \xi^-_n 
+\end{align}
+
+

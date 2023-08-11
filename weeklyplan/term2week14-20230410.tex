@@ -1,0 +1,109 @@
+\begin{table}[htpb]
+    \centering
+    \caption{Some short unfamiliar terminologies in Remaining chapter}
+    {\footnotesize
+
+}
+    {\small
+    \begin{tabular}{cp{32em}}
+        \toprule
+        Terminology & Explanations \\
+        \midrule
+        \textbf{UMAP} & Uniform Manifold Approximation and Projection, similar to tSNE at a high level 
+        but tends to \textit{preserve global structure} better and is much faster. \\
+        \textbf{\makecell[t]{term-document\\frequency matrix}} & $\mathbf{C}\in\mathbb{R}^{M\times N}$, $C_{ij}$ be the number of times \textit{term} $i$ occurs in \textit{context} $j$, which is a simplified TF-IDF. \\
+        \textbf{\makecell[t]{latent semantic\\indexing}} & $\mathbf{C}\approx\hat{\mathbf{C}}=\mathbf{USV}^\mathsf{T}$, $\mathbf{U}\in\mathbb{R}^{M\times L}$ are the embeddings for $M$ \textit{words}, and 
+        $\mathbf{VS}=[\bm{v}_j\odot\bm{s}]_{j=1:N}\in\mathbb{R}^{N\times L}$ are the embeddings for $N$ \textit{documents}. \\
+        \textbf{\makecell[t]{latent semantic\\analysis}} & same with LSI but with a finer grained $\mathbf{C}$ defined on the \textit{context of window $h$}, representing the \textbf{co-occurring} probability of maximum $h$ words. \\
+        \textbf{\makecell[t]{pointwise mutual\\information}} & $C_{ij}=\mathrm{PMI}(i,j)\triangleq\log\frac{p(i,j)}{p(i)p(j)}$ or $[\mathrm{PMI}(i,j)]_+$, another substitution of term-document frequency matrix for the latent semantic preprocessing above \\
+        \textbf{GLOVE} & global vectors for word representation \\
+        \textbf{Word analogies} & ``man is to woman as king is to queen.'' \\
+        \textbf{Rand-walk model} & $p(w_t=w|\bm{z}_t)=\exp(\bm{z}_t^\mathsf{T}\bm{v}_w)/\underbrace{\sum_{w'}\exp(\bm{z}_t^\mathsf{T}\bm{v}_{w'})}_{Z(\bm{z}_t)}$, assuming the prior for the word embeddings $\bm{v}_t$ is an isotropic Gaussian and the latent topic $\bm{z}_t$ undergoes a slow Gaussian random work, which can interpret the word embedding methods. \\
+        \bottomrule
+    \end{tabular}}
+    \label{tab:rest}
+\end{table}
+
+
+
+\textbf{Stochastic neighborhood embedding (SNE)} converts high-dimensional Euclidean distances, 
+including original data space and embedding space, into conditional probabilities that represent similarities.
+\unsure{
+    This idea is similar with MDS but uses conditional probability of picking datapoint $j$ given datapoint $i$
+    as the similarity measure.
+}
+\begin{gather}
+    \begin{cases}
+        p_{j|i} = \frac{\exp\left(-\frac{1}{2\sigma_i^2}\|\bm{x}_i-\bm{x}_j\|^2_2\right)}{\sum_{k\neq i}\exp\left(-\frac{1}{2\sigma_i^2}\|\bm{x}_i-\bm{x}_k\|^2_2\right)} \\
+        q_{j|i} = \frac{\exp\left(-\|\bm{z}_i-\bm{z}_j\|^2_2\right)}{\sum_{k\neq i}\exp\left(-\|\bm{z}_i-\bm{z}_k\|^2_2\right)}
+    \end{cases}\\
+    \mathcal{L}(\mathbf{Z}) = \sum_{i}\infdiv{P_i}{Q_i} = \sum_i\sum_j p_{j|i}\log\frac{p_{j|i}}{q_{j|i}} \\
+    \nabla_{\bm{z}_i}\mathcal{L}(\mathbf{Z}) = 2\sum_{j}(\bm{z}_j-\bm{z}_i)(p_{j|i}-q_{j|i}+p_{i|j}-q_{i|j})
+\end{gather}
+Intuitively, $q_{j|i}$ should match $p_{j|i}$ if the embedding is good. 
+The points are pulled towards each other if the $p$'s are bigger than the $q$'s, 
+and repelled if the $q$'s are bigger than the $p$'s.
+However, the objective is not convex and needs SGD for optimization.
+\begin{itemize}
+    \item \textbf{Symmetric SNE} simplifies the conditional probability to a symmetric one and has similar result with classic SNE.
+    \begin{gather}
+        \begin{cases}
+            p_{ij} = \frac{\exp\left(-\frac{1}{2\sigma^2}\|\bm{x}_i-\bm{x}_j\|^2_2\right)}{\sum_{k<l}\exp\left(-\frac{1}{2\sigma^2}\|\bm{x}_k-\bm{x}_l\|^2_2\right)} \\
+            q_{ij} = \frac{\exp\left(-\|\bm{z}_i-\bm{z}_j\|^2_2\right)}{\sum_{k<l}\exp\left(-\|\bm{z}_k-\bm{z}_l\|^2_2\right)}
+        \end{cases}\\
+        \mathcal{L}(\mathbf{Z}) = \sum_{i}\infdiv{P}{Q} = \sum_{i<j} p_{ij}\log\frac{p_{ij}}{q_{ij}} \\
+        \nabla_{\bm{z}_i}\mathcal{L}(\mathbf{Z}) = 2\sum_{j}(\bm{z}_j-\bm{z}_i)(p_{ij}-q_{ij})
+    \end{gather}
+
+    \item \textbf{t-distributed SNE}, comparing with \textit{symmetric SNE}, 
+    uses heavy tail distribution ($\nu=1$ Student-t, i.e. Cauchy) to calculate probability in embedding space
+    to solve the \textit{crowding problem} brought by Gaussian distribution, 
+    which tends to squeeze points that are relatively far away in the high dimensional space close together in the low dimensional embedding space\unsure{
+        \color{red}Why this problem can arise due to non-heavy tail distribution?
+    }
+    \begin{gather}
+        q_{ij}=\frac{\left(1+\|\bm{z}_i-\bm{z}_j\|_2^2\right)^{-1}}{\sum_{k<l}\left(1+\|\bm{z}_k-\bm{z}_l\|_2^2\right)^{-1}} \\
+        \nabla_{\bm{z}_i}\mathcal{L}(\mathbf{Z}) = 4\sum_{j}(p_{ij}-q_{ij})\underbrace{(\bm{z}_i-\bm{z}_j){\color{blue}(1+\|\bm{z}_i-\bm{z}_j\|^2)^{-1}}}_{\bm{w}}
+    \end{gather}
+    where $(1+\|\bm{z}_i-\bm{z}_j\|^2)^{-1}$ lets points in embedding space act like stars and galaxies, 
+    forming many \textbf{well-separated} clusters (galaxies) each of which has many stars tightly packed inside.\unsure{
+        From the gradient, we can see the distribution difference of $p_{ij}$ and $q_{ij}$ only takes an effect within a local range and slowly decays with the distance increasing,
+        which means only close points affect learning of congregation, but the distance between remote points will not or take few effect. 
+        The bandwidth $\sigma^2$ controls the distance of neighbors such that is close enough to affect the learning.
+    }
+\end{itemize}
+
+\input{figs/cauchypdf}
+
+\textbf{Word2vec} are \textit{shallow} neural nets for predicting a word given its context.
+\begin{itemize}
+    \item \textbf{CBOW}: continuous bag of words. For a seq of words $\bm{w}$ of length $T$, its log-likelihood is defined as follow, i.e., \uline{each word is predicted from its context}.\unsure{
+        Every word depends on its neighbors within the distance of radius $m$.
+    }\unsure{
+        The formula here seems incorrect.
+    }
+    \begin{align}
+        \log p(\bm{w}) & = \sum_{t=1}^T\log p(w_t|\bm{w}_{(t-m):(t+m)})=\sum_{t=1}^T\log\frac{\exp(\bm{v}_{w_t}^\mathsf{T}\bar{\bm{v}}_{\color{red}t})}{\sum_{t'}\exp(\bm{v}_{w_{t'}}^\mathsf{T}\Bar{\bm{v}}_{\color{red}t})} \\
+        \bar{\bm{v}}_{\color{red}t} & \triangleq \frac{1}{2m}\sum_{h=1}^m(\bm{v}_{w_{t-h}}+\bm{v}_{w_{t+h}})
+    \end{align}
+
+    \item \textbf{Skip-gram} \uline{predict the context given each word}
+    \begin{align}
+        \log p(\bm{w}) & = \sum_{t=1}^T\sum_{-m\leq j\leq m}\log p(w_{t+j}|w_t) \\
+        \log p(w_o|w_c) & = \bm{v}_{w_o}^\mathsf{T}\bm{v}_{w_c} - \log\sum_{i\in\mathcal{V}}\exp(\bm{v}_{w_i}^\mathsf{T}\bm{v}_{w_c})
+    \end{align}
+    Since the vanilla skip-gram should compute the preactivations for the entire vocabulary, computationally intensive,
+    a set of $K+1$ \textit{context words} is sampled for each central word, $w_t$, to substitute the vocabulary related term, 
+    called \textbf{Negative sampling}.
+    In the sampled \textit{context words}, only one term is indeed in context of central words, $w_{t+j}$, $j=-m,\cdots,m$,
+    and the remaining $K$ words, $\mathcal{K}$, are sampled from vocabulary according to a reweighed unigram distribution, 
+    $w_k\sim p(w)\propto\mathrm{freq}(w)^\frac{3}{4}$\unsure{
+        common words have larger probabilities to be sampled, while rare words have smaller ones.
+    }
+    \begin{align}
+        p(w_{t+j}|w_t) & \approx p(D=1|w_t,w_{t+j})\prod_{k\in\mathcal{K}} p(D=0|w_t,w_k) \\
+        p(D=1|w_t,w_{t+j}) & = \sigma(\bm{v}_{w_{t+j}}^\mathsf{T}\bm{v}_{w_t}) \\
+        p(D=0|w_t,w_k) & = 1 - \sigma(\bm{v}_{w_k}^\mathsf{T}\bm{v}_{w_t})
+    \end{align}
+\end{itemize}
+

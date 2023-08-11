@@ -7,16 +7,17 @@
 \subsection{Linear Discriminant Analysis}
 
 \textbf{Generative classifier}: 
-modeling that the features are generated from \textbf{class conditional density} $p(\bm{x}|y=c;\bm{\theta})$,
-instead of classifying the samples directly by modeling $p(y|\bm{x},\bm{\theta})$ directly (\textbf{discriminative classifier}).
+modeling that the features are generated from \textbf{class conditional density} $p(\bm{x}|y=c;\bm{\theta})$
 \begin{gather}
+    % p(y)=\mathrm{Cat}(y|\bm{\pi})\\
     p(y=c|\bm{x};\bm{\theta})=
-    \frac{p(\bm{x}|y=c;\bm{\theta})p(y=c;\bm{\theta})}
+    \frac{{\color{red}p(\bm{x}|y=c;\bm{\theta})}{\color{blue}p(y=c;\bm{\theta})}}
     {\sum_{c'\in\mathcal{C}}p(\bm{x}|y=c';\bm{\theta})p(y=c';\bm{\theta})}\\
-    \underbrace{
-    \log{p(y=c|\bm{x};\bm{\theta})}=[\bm{w}(\bm{\theta})]^\mathsf{T}\bm{x}+\text{const}}_\text{LDA}
-    ~\text{for some special}~p(\bm{x}|y=c;\bm{\theta})
+    % \underbrace{
+    % \log{p(y=c|\bm{x};\bm{\theta})}=[\bm{w}(\bm{\theta})]^\mathsf{T}\bm{x}+\text{const}}_\text{LDA}
+    % ~\text{for some special}~p(\bm{x}|y=c;\bm{\theta})
 \end{gather}
+\textbf{discriminative classifier}: classifying the samples directly by modeling $p(y|\bm{x},\bm{\theta})$ directly.
 \begin{itemize}
     \item \textbf{Gaussian discriminant analysis} $p(\bm{x}|y=c;\bm{\theta})=\mathcal{N}(\bm{x}|\bm{\mu}_c,\bm{\Sigma}_c)$
 \end{itemize}\unsure{
@@ -24,11 +25,80 @@ instead of classifying the samples directly by modeling $p(y|\bm{x},\bm{\theta})
 }
 
 \textbf{Gaussian discriminant analysis}: 
-\begin{gather}
+\begin{align}
+    p(y) =&~ \mathrm{Cat}(y|\bm{\pi})\\
     p(\bm{x}|y=c;\bm{\theta})
-    =\mathcal{N}(\bm{x}|\bm{\mu}_c,\bm{\Sigma}_c)
-    =(2\pi)^{-\frac{p}{2}}|\bm{\Sigma}|^{-\frac{}{}}
-\end{gather}
+    =&~ \mathcal{N}(\bm{x}|\bm{\mu}_c,\bm{\Sigma}_c)\\
+    =&~ (2\pi)^{-\frac{D}{2}}|\bm{\Sigma}_c|^{-\frac{1}{2}}\exp\left\{
+        -\frac{1}{2}(\bm{x}-\bm{\mu}_c)^\mathsf{T}\bm{\Sigma}_c^{-1}(\bm{x}-\bm{\mu}_c)
+    \right\}
+\end{align}
+
+\textbf{Quadratic decision boundaries}: 
+for $\text{unspecified}~\bm{\Sigma}_c$
+\begin{align}
+    \log{p(y=c|\bm{x},\bm{\theta})}
+    =&~ \log{\pi_c}-\frac{1}{2}\log|2\pi\bm{\Sigma}_c| \\
+      -&~ \boxed{\frac{1}{2}(\bm{x}-\bm{\mu}_c)^\mathsf{T}\bm{\Sigma}_c^{-1}(\bm{x}-\bm{\mu}_c)}
+      + \text{const}
+\end{align}
+
+\textbf{Linear decision boundaries}: 
+for $\bm{\Sigma}_c=\bm{\Sigma}~(\text{shared}~\bm{\Sigma})$
+\begin{align}
+    \log{p(y=c|\bm{x},\bm{\theta})}
+    =&~ \overbrace{
+        \log{\pi_c} - \frac{1}{2}\bm{\mu}_c^\mathsf{T}\bm{\Sigma}^{-1}\bm{\mu}_c
+    }^{\gamma_c} \\
+    +&~ \boxed{
+        \bm{x}^\mathsf{T}\underbrace{\bm{\Sigma}^{-1}\bm{\mu}_c}_{\bm{\beta}_c}
+    }
+    + \underbrace{
+        \text{const} - \frac{1}{2}\bm{x}^\mathsf{T}\bm{\Sigma}^{-1}\bm{x}
+    }_{\kappa}
+\end{align}
+
+\textbf{Logistic Regression}:
+\begin{align}
+    p(y=c|\bm{x},\bm{\theta})
+    =&~ \frac{\exp\{\bm{\beta}_c^\mathsf{T}\bm{x}+\gamma_c\}}{\sum_{c'}\exp\{\bm{\beta}_{c'}^\mathsf{T}\bm{x}+\gamma_{c'}\}} \\
+    =&~ \frac{\exp\{\bm{w}_c^\mathsf{T}[1,\bm{x}]\}}{\sum_{c'}\exp\{\bm{w}_{c'}^\mathsf{T}[1,\bm{x}]\}}
+\end{align}
+If $C=2$, we have 
+\begin{align}
+    p(y=1|\bm{x},\bm{\theta}) 
+    =&~ \sigma\left((\bm{\beta}_1-\bm{\beta}_0)^\mathsf{T}\bm{x}+(\gamma_1-\gamma_0)\right)\\
+    =&~ \sigma(\bm{w}^\mathsf{T}(\bm{x}-\bm{x}_0))\\
+    \bm{w} =&~ \bm{\beta}_1-\bm{\beta}_0 = \bm{\Sigma}^{-1}(\bm{\mu}_1-\bm{\mu}_0) \\
+    \bm{x}_0 =&~ \frac{1}{2}(\bm{\mu}_1 + \bm{\mu}_0) 
+        - (\bm{\mu}_1 - \bm{\mu}_0)
+        \frac{\log(\pi_1/\pi_0)}
+        {(\bm{\mu}_1 - \bm{\mu}_0)^\mathsf{T}\bm{\Sigma}^{-1}(\bm{\mu}_1 - \bm{\mu}_0)}
+\end{align}
 
 
+\textbf{MLE}:
+\begin{align}
+    \hat{\bm{\mu}}_c =&~ \frac{1}{N_{\mathcal{D}}}\sum_{n:y_n=c}\bm{x}_n \\
+    \hat{\bm{\Sigma}}_c =&~ \frac{1}{N_{\mathcal{D}_c}}\sum_{n:y_n=c}
+    \left(\bm{x}_n-\hat{\bm{\mu}}_c\right)\left(\bm{x}_n-\hat{\bm{\mu}}_c\right)^\mathsf{T}
+\end{align}
+
+\textbf{Tied covariance}:
+\begin{align}
+    \hat{\bm{\Sigma}}
+    =&~ \frac{1}{N_{\mathcal{D}}}\sum_{c=1}^C\sum_{n:y_n=c}
+    \left(\bm{x}_n-\hat{\bm{\mu}}_c\right)\left(\bm{x}_n-\hat{\bm{\mu}}_c\right)^\mathsf{T} \\
+    =&~ \sum_{c=1}^C\frac{N_{\mathcal{D}_c}}{N_{\mathcal{D}}}\hat{\bm{\Sigma}}_c
+\end{align}
+
+\textbf{MAP estimation} for \textbf{regularized discriminant analysis} (RDA):
+\begin{align}
+    \hat{\bm{\Sigma}}_{\text{map}} = \lambda\mathrm{diag}(\hat{\bm{\Sigma}}_{\text{mle}}) + (1-\lambda)\hat{\bm{\Sigma}}_{\text{mle}}
+\end{align}
+
+\textbf{Nearest centroid classifier}
+\begin{align}
+    \hat{y}(\bm{x})=\argmin_{c}(\bm{x}-\bm{\mu}_c)^\mathsf{T}\bm{\Sigma}^{-1}(\bm{x}-\bm{\mu}_c)
+\end{align}
 \subsection{Logistic Regression}

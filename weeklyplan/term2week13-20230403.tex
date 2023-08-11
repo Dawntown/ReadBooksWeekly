@@ -1,0 +1,427 @@
+\subsection{Dimensionality Reduction}
+
+\begin{table}[htpb]
+    \centering
+    \caption{Some short unfamiliar terminologies in Dimensionality Reduction}
+    {\footnotesize
+
+}
+    {\small
+    \begin{tabular}{cp{32em}}
+        \toprule
+        Terminology & Explanations \\
+        \midrule
+        \textbf{scree plot} & a plot of the eigenvalues $\lambda_l$ vs $l$ in order of decreasing magnitude \\
+        \textbf{profile likelihood} & $L^*=\argmax\ell(L)$, assuming $\lambda_{1:L}\sim\mathcal{N}(\mu_1,\sigma^2)$ and $\lambda_{L+1:D}\sim\mathcal{N}(\mu_2,\sigma^2)$, $\ell(L)=\sum_{k=1}^L\log\mathcal{N}(\lambda_k|\hat{\mu}_1(L),\hat\sigma^2(L))+\sum_{k=L+1}^D\log\mathcal{N}(\hat\mu_2(L),\hat\sigma^2(L))$ \\
+        \textbf{nonlinear factor analysis} & $p(\bm{x})=\int\mathcal{N}(\bm{x}|\bm{f}(\bm{z};\bm{\theta}),\mathbf{\Psi})\mathcal{N}(\bm{z}|\mathbf{0},\mathbf{I})d\bm{z}$ \\
+        \textbf{\makecell{Exponential family\\factor analysis}} & $p(\bm{x}|\bm{z})=\exp\left\{\mathcal{T}(\bm{x})^\mathsf{T}\bm{\theta}+h(\bm{x})-g(\bm{\theta})\right\}$, whose posterior can not be calculated analytically due to the lack of conjugacy between exp-family likelihood and Gaussian prior \\
+        \textbf{denoising autoencoder} & adding noise to its input, and the model reconstruct the clean version of original input, e.g. $p_c(\Tilde{\bm{x}}|\bm{x})=\mathcal{N}(\Tilde{\bm{x}}|\bm{x},\sigma^2\mathbf{I})$ and $\ell(\bm{x},r(\Tilde{\bm{x}}))=\|\bm{e}(\bm{x})\|^2_2$, where $\bm{e}(\bm{x})=r(\Tilde{\bm{x}}) - \bm{x}$ \\
+        \textbf{contraction} & A linear operator with Jacobian $\mathbf{J}$ if $\|\mathbf{J}\bm{x}\|\leq 1$ for all unit-norm inputs $\bm{x}$. \\
+        \textbf{Contractive autoencoder} & AE with additional penalty on \textit{encoder}'s Jacobian, $\Omega(\bm{z},\bm{x}) 
+        = \lambda \left\|\frac{\partial \bm{f}_e(\bm{x})}{\partial \bm{x}}\right\|^2_F 
+        = \lambda\sum_k \|\nabla_{\bm{x}}h_k(\bm{x})\|_2^2$.
+        Cooperating with the reconstruction loss, this penalty forces the encoder to be a constant function encourages the model to learn a representation only a few units change in response to the variations of input. \\
+        \textbf{sparse autoencoder} & AE with additional penalty on \textit{latent activations} $\Omega{\bm{z}}=\lambda\|\bm{z}\|_1$ (\textbf{activity regularization}) or for logistic units $\Omega(\bm{z}_{(1:L,1:N)})=\lambda\sum_k\infdiv{\bm{p}}{\bm{q}_k(\bm{z}_{(k,1:N)})}$ \\
+        \textbf{manifold} & a topological space locally Euclidean.\\
+        \textbf{manifold learning} & nonlinear dimensionality reduction, recovers the underlying low-dimensional structure in a high-dimensional dataset, where the low-dimensional structure is assumed to be a curved manifold (\textbf{manifold hypothesis}). \\
+        \textbf{Isomap} & approximate the structure of manifold first by creating KNN graph 
+        (using \texttt{Dijkstra}'s shortest path algorithm) between datapoints and 
+        then apply classical MDS (i.e. PCA) on the new space to capture local structure. \\
+        \bottomrule
+    \end{tabular}}
+    \label{tab:dimreduce}
+\end{table}
+
+
+\textbf{Principal components analysis (PCA)} finds a \textit{linear} and \textit{orthogonal} 
+\textit{projection}\unsure{
+    In the context of projection, 
+    the \textbf{encoder} is defined as $\mathbf{W}^\mathsf{T}\bm{x}=\bm{z}$,
+    and the \textbf{decoder} is defined as $\mathbf{W}\bm{z}=\hat{\bm{x}}$
+} of the high dimensional data $\bm{x}$ to a low dimensional subspace $\bm{z}$, 
+i.e. $\mathbf{W}^\mathsf{T}\in\mathbb{R}^{L\times D}:\mathbb{R}^D\to \mathbb{R}^L$, such that minimizes the \textbf{reconstruction error}
+\begin{gather}
+    \mathcal{L}(\mathbf{W})\triangleq\frac{1}{N}\sum_{n=1}^N\|\bm{x}_n-\underbrace{\text{Dec}(\text{Enc}(\bm{x}_n;\mathbf{W});\mathbf{W})}_{\hat{x}_n}\|_2^2 \\
+    \Rightarrow\mathbf{U}_L=\mathbf{W}^*=\min_{\mathbf{W}}\mathcal{L}(\mathbf{W}),
+\end{gather}
+where $\mathbf{U}_L$ contains $L$ eigenvectors with the largest eigenvalues of the \textbf{empirical} covariance matrix,\unsure{
+    By imposing a constraint of $\mathbf{W}^\mathsf{T}\mathbf{W}=\mathbf{I}$,
+    we can solve this optimization problem by solving the KKT of its dual problem,
+    $\hat{\mathbf{\Sigma}}\mathbf{W}=\mathrm{diag}(\lambda_1,\cdots,\lambda_L)\mathbf{W}$,
+    where $\lambda_l$ is the $l$-th Lagrange multiplier introduced by Lagrange function,
+    which has the same format of solving eigenvalue decomposition. 
+    With the $L$ increasing, reconstruction loss of PCA will keep decreasing!
+}\unsure{
+    due to the orthogonal constraint, vectors $\bm{w}_l$ can be optimized one by one.
+}
+which is equivalent to maximizing the likelihood of \textit{a latent linear Gaussian model} known as probabilistic PCA.\unsure{
+    PCA and the probabilistic PCA \textit{without} noise are the same thing.
+}
+One can show that
+\begin{align}
+    \mathcal{L}_L
+    & = \sum_{l=L+1}^D \lambda_l \\
+    \mathcal{F}_L
+    & = \frac{\sum_{l=1}^L\lambda_l}{\sum_{l'=1}^D\lambda_{l'}},
+\end{align}
+where $\mathcal{F}_L$ is the \textbf{fraction of variance explained}.
+
+Some computational issues appear in practice:
+\begin{enumerate}[(1)]
+    \item \uline{use correlation matrix to compute projection matrix}, which is equivalent to use the variance matrix of the data standardized to avoid the measurement scale effect.
+    
+    \item \uline{Eigenvalue-decompose the Gram matrix $\mathbf{XX}^\mathsf{T}$} 
+    instead of covariance matrix $\mathbf{X}^\mathsf{T}\mathbf{X}$ to reduce the computational complexity 
+    when $N<D$, and the eigenvectors of covariance matrix can be obtained by\unsure{
+    Note computing PCA by Gram matrix we need to know the data matrix.
+    }
+    \begin{align}
+        \mathbf{XX}^\mathsf{T}
+        & = \Tilde{\mathbf{U}}\Tilde{\mathbf{\Lambda}}\Tilde{\mathbf{U}}^\mathsf{T} \label{eq:pcagram}\\
+        \Rightarrow~~ 
+        \underbrace{\mathbf{X}^\mathsf{T}\mathbf{X}}_\text{cov}\mathbf{X}^\mathsf{T}\Tilde{\mathbf{U}} 
+        & = \underbrace{\mathbf{X}^\mathsf{T}\Tilde{\mathbf{U}}}_\text{\tiny\makecell{unnor-\\malized\\eigenvec}}\Tilde{\mathbf{\Lambda}} \\
+        \Rightarrow~~
+        \Aboxed{\mathbf{U} & =
+        \mathbf{X}^\mathsf{T}\Tilde{\mathbf{U}}\Tilde{\mathbf{\Lambda}}^{-\frac{1}{2}}} \label{eq:pcagramsol} \\
+        \text{since}~~
+        \|\mathbf{X}^\mathsf{T}\Tilde{\bm{u}}_l\|_2^2
+        & = \Tilde{\bm{u}}_l^\mathsf{T}\mathbf{XX}^\mathsf{T}\Tilde{\bm{u}}_l \\
+        & = \Tilde{\lambda}_l
+    \end{align}
+
+    \item \uline{computing PCA using SVD of $\mathbf{X}$}\unsure{
+        Recall Chapter 7, the truncated SVD approximation
+    } and randomized SVD ($O(NL^2) + O(L^3)$) when very high-dimensional problems.
+\end{enumerate}
+
+
+
+\textbf{Factor analysis} corresponds to the following linear-Gaussian latent variable generative model:\unsure{
+    The parameters to be determined are $\mathbf{W}$, $\bm{\mu}$, and $[\psi_1,\cdots,\psi_L]$
+}
+\begin{align}
+    p(\bm{z}) 
+    & = \mathcal{N}(\bm{z}|\mathbf{0},\mathbf{I}) \\
+    p(\bm{x}|\bm{z})
+    & = \mathcal{N}(\bm{x}|\mathbf{W}\bm{z}+\bm{\mu},\mathbf{\Psi}) ~~ \mathbf{\Psi}=\mathrm{diag}(\psi_1,\cdots,\psi_L) \\
+    \Rightarrow p(\bm{x}) & = \mathcal{N}(\bm{x}|\bm{\mu},\underbrace{\mathbf{WW}^\mathsf{T}+\mathbf{\Psi}}_{\mathbf{C}}) ~~ \text{i.e.} \\
+    \mathrm{Var}~x_d & = {\color{violet}\sum_{k=1}^L w_{dk}^2} + {\color{teal}\psi_d} \\
+    & = \text{\color{violet}due to common factors} + \textbf{\color{teal}uniqueness}
+\end{align}
+Once it is fitted (by EM), then we can get the distribution of latent variables by Bayes rule 
+\begin{gather}
+    \boxed{p(\bm{z}|\bm{x}) = \mathcal{N}(\bm{z}|\hat{\mathbf{W}}^\mathsf{T}\hat{\mathbf{C}}^{-1}(\bm{x}-\hat{\bm{\mu}}),\mathbf{I}-\hat{\mathbf{W}}^\mathsf{T}\hat{\mathbf{C}}^{-1}\hat{\mathbf{W}})} \label{eq:faposterior}
+\end{gather}
+
+\textbf{Probabilistic PCA}: FA with additional constraints, that is\unsure{
+    Then, the parameters to be determined remains $\mathbf{W}$ and $\sigma^2$.
+}
+\begin{gather}
+    \begin{cases}
+    \mathbf{W}~\text{has orthonormal columns} \\
+    \psi_{1} = \cdots = \psi_{L} = \sigma^2 \\
+    \bm{\mu} = \mathbf{0}
+    \end{cases} \\
+    \Rightarrow
+    \mathrm{NLL} = - \log p(\mathbf{X}|\bm{\mu},\mathbf{W},\sigma^2) = \frac{N}{2}\left[
+        D\log (2\pi) + \log |\mathbf{C}| + \mathrm{tr}(\mathbf{C}^{-1}\mathbf{S})
+    \right],
+\end{gather}
+where $\mathbf{S} = \frac{1}{N} \sum_{n=1}^N(\bm{x}_n - \Bar{x})(\bm{x}_n - \Bar{x})^\mathsf{T}$,\unsure{
+    This is the covariance matrix to be decomposed in PCA.
+}
+\begin{gather}
+    \Rightarrow \begin{cases}
+        \hat{\mathbf{W}}_\text{mle} = \mathbf{U}_L(\mathbf{L}_L - \sigma^2\mathbf{I})^\frac{1}{2}\mathbf{R}~~~(\forall~\mathbf{R}~\text{can be}~\mathbf{I}) \\
+        \hat{\sigma}^2_\text{mle} = \frac{1}{D - L}\sum_{i=L+1}^D \lambda_i
+    \end{cases}
+\end{gather}
+which can plugin FA's posterior inference (\ref{eq:faposterior})\unsure{
+    The unidentifiability of FA results in the arbitrariness of $\mathbf{R}$, which is an orthogonal rotation matrix that transform the latent embedding to another. Since latent space is isotropic, any orthogonal rotation will not conflict the distribution assumption.
+} and 
+use matrix inverse lemma (Lemma \ref{eq:woodbury}) to avoid computing the inverse of $\mathbf{C}$\unsure{
+    \color{red}On Page 665 of \cite{pml1Book}, the deduction of PPCA is incorrect.
+}
+\begin{align}
+    \mathbf{C}^{-1} 
+    & = \left[
+        \sigma^2\mathbf{I} + \mathbf{WW}^\mathsf{T}
+    \right]^{-1} \\
+    & = \sigma^{-2}[\mathbf{I}-\mathbf{W}{\underbrace{(\sigma^2\mathbf{I} + \mathbf{W}^\mathsf{T}\mathbf{W})}_{\color{red}=\mathbf{L}_L}}^{-1}\mathbf{W}^\mathsf{T}] \\
+    & = \sigma^{-2}\left[
+        \mathbf{I} - \mathbf{U}_L(\mathbf{L}_L-\sigma^2\mathbf{I})\mathbf{L}_L^{-1}\mathbf{U}_L^\mathsf{T}
+    \right] \\
+    & = \sigma^{-2}\left[
+        \mathbf{I} - \mathbf{U}_L(\mathbf{L}_L-\sigma^2\mathbf{I})^\frac{1}{2}\mathbf{L}_L^{-1}(\mathbf{L}_L - \sigma^2\mathbf{I})^\frac{1}{2}\mathbf{U}_L^\mathsf{T}
+    \right]
+\end{align}
+\begin{gather}
+    \Rightarrow ~\boxed{p(\bm{z}|\bm{x})
+    = \mathcal{N}(\bm{z}|\mathbf{L}_L^{-1}\mathbf{W}^\mathsf{T}\bm{x}, \sigma^2\mathbf{L}_L^{-1})
+    }
+\end{gather}
+
+\begin{example}[vanilla EM for FA]\label{example:em4fa}
+$~$
+    \begin{itemize}
+        \item \textbf{E step}: for some given parameters $\bm{\theta}=[\mathbf{W},\bm{\mu},\mathbf{\Psi}]$,
+        we can compute the posterior embeddings $\bm{z}_i$ for each observations $\bm{x}_i$
+        \begin{align}
+            p(\bm{z}_i|\bm{x}_i,\bm{\theta}) & = \mathcal{N}(\bm{z}_i|\bm{m}_i,\mathbf{\Sigma}_i) \\
+            \bm{m}_i & \triangleq \mathbf{\Sigma}_i(\mathbf{W}^\mathsf{T}\mathbf{\Psi}^{-1}(\bm{x}_i-\bm{\mu})) \\
+            \mathbf{\Sigma}_i & \triangleq (\mathbf{I} + \mathbf{W}^\mathsf{T}\mathbf{\Psi}^{-1}\mathbf{W})^{-1}
+        \end{align}
+
+        \item \textbf{M step}: compute the point estimation of $\bm{\theta}=[\Tilde{\mathbf{W}},\mathbf{\Psi}]$. 
+        Define $\Tilde{\mathbf{W}}=[\mathbf{W},\bm{\mu}]$ and $\Tilde{\bm{z}}=[\bm{z},1]$
+        \begin{align}
+            \bm{b}_i & \triangleq \mathbb{E}[\Tilde{\bm{z}}|\bm{x}_i]=\begin{bmatrix}
+                \bm{m}_i \\ 1
+            \end{bmatrix} \\
+            \mathbf{C}_i & \triangleq \mathbb{E}[\Tilde{\bm{z}}\Tilde{\bm{z}}^\mathsf{T}|\bm{x}_i] = \begin{bmatrix}
+                \mathbb{E}[\bm{zz}^\mathsf{T}|\bm{x}_i] &\mathbb{E}[\bm{z}|\bm{x}_i] \\
+                \mathbb{E}[\bm{z}|\bm{x}_i] & 1
+            \end{bmatrix} \\
+            \Rightarrow \hat{\Tilde{\mathbf{W}}} & = \left[
+                \sum_{i=1}^N\bm{x}_i\bm{b}_i^\mathsf{T}
+            \right]\left[
+                \sum_{i=1}^N\mathbf{C}_i
+            \right]^{-1} \\
+            \hat{\mathbf{\Psi}} & = \frac{1}{N}\mathrm{diag}\left\{
+            \sum_{i=1}^N(\bm{x}_i-\hat{\Tilde{\mathbf{W}}}\bm{b}_i)\bm{x}_i^\mathsf{T}
+            \right\}
+        \end{align}
+    \end{itemize}
+\end{example}
+
+
+\begin{example}[EM for PPCA]
+    Denote $\Tilde{\mathbf{X}} = \mathbf{X}^\mathsf{T}$
+    \begin{itemize}
+        \item \textbf{E step}: $\Tilde{\mathbf{Z}} = (\mathbf{W}^\mathsf{T}\mathbf{W})^{-1}\mathbf{W}^\mathsf{T}\Tilde{\mathbf{X}}$ 
+        \item \textbf{M step}: $\Tilde{\mathbf{X}}\Tilde{\mathbf{Z}}^\mathsf{T}(\Tilde{\mathbf{Z}}\Tilde{\mathbf{Z}}^\mathsf{T})^{-1}$
+    \end{itemize}
+\end{example}
+
+
+
+
+\textbf{Mixtures of factor analysers} assume the model is \textit{only locally linear} and 
+the overall model is a combination of several FA models.\unsure{
+    The formula in original text of \cite{pml1Book} is incorrect.
+}
+\begin{align}
+    p(\bm{x}|\bm{z},c=k) 
+    & = \mathcal{N}(\bm{x}|\mathbf{W}_k\bm{z}+\bm{\mu}_k,\mathbf{\Psi}_k) \\
+    p(\bm{z}) 
+    & = \mathcal{N}(\bm{z}|\mathbf{0},\mathbf{I}) \\
+    p(c) 
+    & = \mathrm{Cat}(c|\bm{\pi}) \\
+    \Rightarrow~p(\bm{x}|\bm{\theta})
+    & = \sum_k p(c=k)\int p(\bm{x}|\bm{z},c)p(\bm{z}|c)d\bm{z} \\
+    & = \sum_k \pi_k\int \mathcal{N}(\bm{x}|\mathbf{W}_k\bm{z},\mathbf{\Psi}_k)\mathcal{N}(\bm{z}|\bm{\mu}_k,\mathbf{I}) d\bm{z}
+\end{align}
+
+
+Factor analysis models for paired data $(\bm{x},\bm{y})$\unsure{The methods below are not necessary under assumption of Gaussian but for examples}
+\begin{itemize}
+    \item \textbf{Supervised PCA} integrates the information of label to estimation 
+    by modeling the joint $p(\bm{x},\bm{y})$ using a shared lower dimensional representation
+    \begin{align}
+        p(\bm(z)) 
+        & = \mathcal{N}(\bm{z},\mathbf{0},\mathbf{I}) \\
+        p(\bm{x}|\bm{z})
+        & = \mathcal{N}(\bm{x}|\mathbf{W}_x\bm{z},\sigma_x^2\mathbf{I}) \\
+        p(\bm{y}|\bm{z})
+        & = \mathcal{N}(\bm{y}|\mathbf{W}_y\bm{z},\sigma_y^2\mathbf{I}) \\
+        \overset{y\in\mathbb{R}}{\Rightarrow} 
+        p(y|\bm{x},\bm{\theta}) 
+        & = \mathcal{N}(y|\bm{x}^\mathsf{T}\bm{v},\bm{w}_y^\mathsf{T}\mathbf{C}\bm{w}_y+\sigma_y^2) \\
+        \mathbf{C}
+        & \triangleq (\mathbf{I}+\sigma_x^{-2}\mathbf{W}_x^\mathsf{T}\mathbf{W}_x)^{-1} \\
+        \bm{v}
+        & \triangleq \sigma_x^{-2}\mathbf{W}_x\mathbf{C}\bm{w}_y.
+    \end{align}
+    This model is completely symetric in $\bm{x}$ and $\bm{y}$, and the part to be predicted in the likelihood can be upweighted by
+    \begin{gather}
+        p(\mathbf{X}, \mathbf{Y}, \mathbf{Z}|\bm{\theta}) = p(\mathbf{Y}|\mathbf{Z},\mathbf{W}_y)p(\mathbf{X}|\mathbf{Z},\mathbf{W}_x)^\alpha p(\mathbf{Z})~~~\alpha \leq 1
+    \end{gather}
+    
+    \item \textbf{Partial least squares} allow the inputs $\bm{x}$ to have their own \textit{additional} ``private'' noise source $(\bm{z}_x,\bm{b}_x)$ that is independent on the target variable $\bm{y}$
+    \begin{align}
+        p(\bm{z}) 
+        & = \mathcal{N}(\bm{z}_s|,\mathbf{0},\mathbf{I})\mathcal{N}(\bm{z}_x|\mathbf{0},\mathbf{I}) \\
+        p(\bm{x}|\bm{z})
+        & = \mathcal{N}(\bm{x}|\mathbf{W}_x\bm{z}_s+\mathbf{B}_x\bm{z}_x,\sigma_x^2\mathbf{I}) \\
+        p(\bm{y}|\bm{z})
+        & = \mathcal{N}(\bm{y}|\mathbf{W}_y\bm{z}_s,\sigma_y^2\mathbf{I})
+    \end{align}
+
+    \item \textbf{Canonical correlation analysis}, similar with the partial least squares, also introduce \textit{additional} ``private'' noise sources for \textit{both} $\bm{x}$ and $\bm{y}$\unsure{
+        When the dimension of latent space is set to 1, then the \textbf{CCA} model can be applied to measure the correlation of two \textit{arbitrary-dimension} variables, 
+        which has been widely used in analysis the connectome of high-dimensional brain images.
+    }
+    \begin{align}
+        p(\bm{z})
+        & = \mathcal{N}(\bm{z}_s|\mathbf{0},\mathbf{I})\mathcal{N}(\bm{z}_x|\mathbf{0},\mathbf{I}) \\
+        p(\bm{x}|\bm{z})
+        & = \mathcal{N}(\bm{x}|\mathbf{W}_x\bm{z}_s+\mathbf{B}_x\bm{z}_x,\sigma_x^2\mathbf{I}) \\
+        p(\bm{y}|\bm{z})
+        & = \mathcal{N}(\bm{y}|\mathbf{W}_y\bm{z}_s+\mathbf{B}_y\bm{z}_y,\sigma_y^2\mathbf{I}) \\
+        \Rightarrow p(\bm{x},\bm{y}) 
+        & = \mathcal{N}(\bm{x},\bm{y}|\bm{\mu},\mathbf{WW}^\mathsf{T} + \sigma^2\mathbf{I}) \\
+        \bm{\mu}
+        & = [\bm{\mu}_x;\bm{\mu}_y] \\
+        \mathbf{W}
+        & = \left[\mathbf{W}_x;\mathbf{W}_y\right] \\
+        \mathbf{WW}^\mathsf{T}
+        & = \begin{bmatrix}
+            \mathbf{W}_x\mathbf{W}_x^\mathsf{T} & \mathbf{W}_x\mathbf{W}_y^\mathsf{T} \\
+            \mathbf{W}_y\mathbf{W}_x^\mathsf{T} & \mathbf{W}_y\mathbf{W}_y^\mathsf{T}
+        \end{bmatrix}
+    \end{align}
+\end{itemize}
+
+
+
+\textbf{Variational autoencoder} has two components and EM-like loss: 
+\begin{enumerate}[(1)]
+    \item the decoder is a non-linear extension of the \textit{factor analysis generative model}
+    \begin{gather}
+        p_{\bm{\theta}}(\bm{x}|\bm{z}) = \begin{cases}
+            \mathcal{N}(\bm{x}|\bm{f}_d(\bm{z};\bm{\theta}),\sigma^2\mathbf{I}) & \text{continuous} \\
+            \prod_{i=1}^D\mathrm{Ber}(x_i|f_d(\bm{z};\bm{\theta})) & \text{binary}
+        \end{cases}
+    \end{gather}
+
+    \item the encoder, \textbf{inference network}, is trained simultaneously with generative model to do \textit{approximate posterior} inference
+    \begin{gather}
+        q_{\phi}(\bm{z}|\bm{x}) = \mathcal{N}(\bm{z}|\underbrace{\bm{f}_{e_\mu}(\bm{x};\bm{\phi}_\mu)}_{\bm{\mu}_{\bm{\phi}}(\bm{x})},\mathrm{diag}(\underbrace{\bm{f}_{e_\sigma}(\bm{x};\bm{\phi}_\sigma)}_{\bm{\sigma}_{\bm{\phi}}(\bm{x})})) ~~~ \text{e.g. continuous}.
+    \end{gather}
+
+    \item loss function
+    \begin{align}
+        \log p_{\bm{\theta}}(\bm{x}) 
+        & = {\color{blue}\log} \int q_{\bm{\phi}}(\bm{z}|\bm{x})\frac{p_{\bm{\theta}}(\bm{x},\bm{z})}{q_{\bm{\phi}}(\bm{z}|\bm{x})} d\bm{z} \\
+        & \geq  \int q_{\bm{\phi}}(\bm{z}|\bm{x}) {\color{blue}\log} \frac{p_{\bm{\theta}}(\bm{x},\bm{z})}{q_{\bm{\phi}}(\bm{z}|\bm{x})} d\bm{z} \\
+        & = \mathbb{E}_{q_{\bm{\phi}}(\bm{z}|\bm{x})} {\color{blue}\log} \frac{p_{\bm{\theta}}(\bm{x}|\bm{z})p(\bm{z})}{q_{\bm{\phi}}(\bm{z}|\bm{x})} \\
+        & = \underbrace{\mathbb{E}_{q_{\bm{\phi}}(\bm{z}|\bm{x})} {\color{blue}\log} p_{\bm{\theta}}(\bm{x}|\bm{z}) - \overbrace{\mathbb{E}_{q_{\bm{\phi}}(\bm{z}|\bm{x})} {\color{blue}\log} \frac{q_{\bm{\phi}}(\bm{z}|\bm{x})}{p(\bm{z})}}^{\infdiv{q_{\bm{\phi}}(\bm{z}|\bm{x})}{p(\bm{z})}}}_{\L(\bm{\theta},\bm{\phi}|\bm{x})} \\
+        & = \mathbb{E}_{\bm{\epsilon}\sim\mathcal{N}(\mathbf{0},\mathbf{I})} {\color{blue}\log} p_{\bm{\theta}}(\bm{x}|\bm{z}=\bm{\mu}_{\bm{\phi}}(\bm{x}) + \bm{\sigma}_{\bm{\phi}}(\bm{x}) \odot \bm{\epsilon}) - \infdiv{q_{\bm{\phi}}(\bm{z}|\bm{x})}{p(\bm{z})}
+    \end{align}
+\end{enumerate}
+
+
+\textbf{Multidimensional scaling (MDS)} tries to find a set of low dimensional vectors $\bm{z}_i\in\mathbb{R}^L,i=1,\cdots,N$ 
+such that their \textit{pairwise distances} are as similar as possible to pairwise dissimilarities of the original data provided by user.
+\begin{enumerate}[(1)]
+    \item \uline{classic MDS} defines the dissimilarity by the kernel of centered original data $\Tilde{\mathbf{K}}=\Tilde{\mathbf{X}}\Tilde{\mathbf{X}}^\mathsf{T}$, 
+    \textit{equivalent to PCA}.
+    \begin{gather}
+        \mathcal{L}_\text{\color{violet}strain}(\mathbf{Z}) = \sum_{i,j}\left(
+            \Tilde{K}_{ij} - \langle\Tilde{\bm{z}}_i,\Tilde{\bm{z}}_j\rangle
+        \right)^2
+        = \left\|\Tilde{\mathbf{K}}-\Tilde{\mathbf{Z}}\Tilde{\mathbf{Z}}^\mathsf{T}\right\|^2_F
+    \end{gather}
+
+    \item \uline{metric MDS} generalizes to allow for \textit{any} dissimilarity measure. 
+    \begin{gather}
+        \mathcal{L}_\text{\color{violet}stress}(\mathbf{Z}) = \sqrt{\frac{\sum_{i<j}\left(d_{ij}-\hat{d}_{ij}\right)^2}{\sum_{i,j}d_{ij}^2}}, 
+    \end{gather}
+    where $\hat{d}_{ij}=\|\bm{z}_i-\bm{z}_j\|$.
+
+    \item \uline{non-metric MDS} matches the ranking  of how similar points are instead of similarity measure.
+    \begin{gather}
+        \mathcal{L}_\text{\color{violet}NM}(\mathbf{Z}) = \sqrt{\frac{\sum_{i<j}\left(f(d_{ij})-\hat{d}_{ij}\right)^2}{\sum_{i,j}\hat{d}_{ij}^2}},
+    \end{gather}
+    where $\hat{d}_{ij}=\|\bm{z}_i-\bm{z}_j\|$ and $f(d)$ is a monotonic transformation from distances to ranks.
+
+    \item \uline{Sammon mapping} upweights small distances since it matter more in many embedding methods comparing with metric MDS.
+    \begin{gather}
+        \mathcal{L}_\text{\color{violet}sammon}(\mathbf{Z})=\frac{1}{\sum_{i<j}d_{ij}}\sum_{i\neq j}\frac{(d_{ij}-\hat{d}_{ij})^2}{d_{ij}}
+    \end{gather}
+\end{enumerate}
+
+
+\textbf{Kernel PCA} replaces the Gram matrix $\mathbf{XX}^\mathsf{T}$ in Equation (\ref{eq:pcagram}) to a kernel $\mathcal{K}(\mathbf{X},\mathbf{X})$.
+If we denote the kernel function's implicit feature representation as $\mathcal{K}(\bm{x}_i,\bm{x}_j)=\bm{\phi}(\bm{x}_i)^\mathsf{T}\bm{\phi}(\bm{x}_j)$,\unsure{
+    But the feature representation is unknown or infinite dimensiona,
+    we can only get the projection of new data directly.
+}
+then by Equation (\ref{eq:pcagramsol}), the projection matrix is 
+\begin{gather}
+    \mathbf{U}_\text{kpca} = \mathbf{\Phi}^\mathsf{T}\Tilde{\mathbf{U}}\Tilde{\Lambda}^{-\frac{1}{2}} \\
+    \Rightarrow \bm{\phi}_*^\mathsf{T}\mathbf{U}_\text{kpca} = \bm{k}_*^\mathsf{T}\Tilde{\mathbf{U}}\Tilde{\mathbf{\Lambda}}^{-\frac{1}{2}},
+\end{gather}
+where $\bm{k}_*^\mathsf{T} = [\mathcal{K}(\bm{x}_*,\bm{x}_1),\cdots,\mathcal{K}(\bm{x}_*,\bm{x}_N)]$ and 
+$\bm{x}_*$ is a new test datapoint whose feature representation is $\bm{\phi}_*$.
+However, kernel PCA does not reduce the dimension of feature but expand it if using rbf kernel function for example.
+This problem can be solved by stacking \textbf{maximum variance unfolding} (MVU) to learn a kernel defined on a lower dimensional embedding $\bm{\phi}_i=\bm{z}_i$
+\begin{align}
+    \max~\sum_{(i,j)\in\mathcal{G}}\|\bm{z}_i-\bm{z}_j\|^2_2~~\text{s.t.}&~~\|\bm{z}_i-\bm{z}_j\|_2^2 = \|\bm{x}_i-\bm{x}_j\|_2^2 \\
+    \iff& \\
+    \max~\mathrm{tr}(\mathbf{K}(=\mathbf{ZZ}^\mathsf{T}))~~\text{s.t.}&~~\begin{cases}
+        \|\bm{z}_i-\bm{z}_j\|_2^2 = \|\bm{x}_i-\bm{x}_j\|_2^2 \\
+        \sum_{i,j} K_{ij} = 0 \\
+        \mathbf{K} \succ 0
+    \end{cases},
+\end{align}
+where $\mathcal{G}$ is the nearest neighbor graph such as from Isomap.\unsure{
+    It is like metric MDS but in a unfolded data manifold or Isomap with metric MDS.
+}
+
+
+\textbf{LLE}, local linear embedding, assumes the data manifold around each point $\bm{x}_i$ is locally linear and find linear approximation (reconstruction weights $\bm{w}_i$) by predicting $\bm{x}_i$ as linear combination of its $K$ nearest neighbors both in original space and transfer the approximation to embedding space to reduce the dimension. \unsure{
+    Compared with Isomap, LLE is less sentive to \textit{short-circuiting} (noise).
+}
+\begin{align}
+    \hat{\mathbf{W}} & = \argmin_{\mathbf{W}}\sum_{i=1}^N\left(
+        \bm{x}_i - \sum_{i=1}^N w_{ij}\bm{x}_j
+    \right)^2~~\text{s.t.}~~ \begin{cases}
+        w_{ij} = 0 & \bm{x}_{ij}\notin\mathcal{N}_K(\bm{x}_i) \\
+        \sum_{j=1}^N w_{ij} = 1 & i=1,\cdots,N
+    \end{cases} \\
+    \hat{\mathbf{Z}} & = \argmin_{\mathbf{Z}}\|\mathbf{Z}-\hat{\mathbf{W}}\mathbf{Z}\|^2_2
+\end{align}
+
+
+
+\textbf{Laplacian eigenmaps}, or \textbf{spectral embedding}, computes a low-dimensional representation of the data 
+where the \textit{weighted distances} between a datapoint and its $K$ \textit{nearest neighbors} are minimized
+and the weights decay with the distances increasing.
+\begin{align}
+    \mathcal{L}(\mathbf{Z}) & = \sum_{i,j}W_{ij}\|\bm{z}_i-\bm{z}_j\|^2_2~~\mathrm{s.t.}~~\mathbf{Z}^\mathsf{T}\mathbf{DZ}=\mathbf{I} \\
+    W_{ij} & \triangleq \begin{cases}
+        \exp\left(-\frac{1}{2\sigma^2}\|\bm{x}_i-\bm{x}_j\|\right) & j\in\mathcal{N}_K(i) \\
+        0 & \text{otherwise}
+    \end{cases} \\
+    \mathbf{D} & \triangleq \mathrm{diag}(D_{ii}=\sum_{j}W_{ij}) ~~~\text{(degree of each node)} \\
+    \Rightarrow
+    \mathcal{L}(\mathbf{Z}) & = 2\mathrm{tr}(\mathbf{Z}^\mathsf{T}(\underbrace{\mathbf{D}-\mathbf{W}}_{\mathbf{L}})\mathbf{Z}) \\
+    \min_{\mathbf{Z}} \mathcal{L}(\mathbf{Z}) & \iff \mathbf{L}\bm{z}_i = \lambda_i\mathbf{D}\bm{z}_i,i=1,\cdots,L ~\text{smallest nonzero eigenvalues}
+\end{align}
+where the $\mathbf{L}$ is the \textbf{graph Laplacian}\unsure{
+    recall the fundamental GCN, Laplacian matrix $\mathbf{L}\triangleq\mathbf{D}-{\color{blue}\mathbf{A}}$ implies the connectome of graph and the smoothness path of information.
+}
+It can serve as a differentiation operator to compute a discrete derivative of the function at a point $i$\unsure{
+    \textit{gradient} at node $i$
+} or an overall measure of ``smoothness'' of the function $f$\unsure{
+    \textit{Hessian} of $f$ over the graph.
+}:
+\begin{align}
+    [\mathbf{L}\bm{f}]_i 
+    & = \sum_{j\in\mathcal{N}(i)}W_{ij}[\bm{f}_i-\bm{f}_j] \\
+    \bm{f}^\mathsf{T}\mathbf{L}\bm{f} 
+    & = \bm{f}^\mathsf{T}\mathbf{D}\bm{f} - \bm{f}^\mathsf{T}\mathbf{W}\bm{f} 
+    = \sum_{i}d_if_i^2 - \sum_{i,j}w_{ij}f_if_j \\
+    & = \frac{1}{2}\left(\sum_i d_if_i^2 - 2\sum_{i,j}w_{ij}f_if_j + \sum_j d_jf_j^2\right) \\
+    & = \frac{1}{2}\sum_{i,j}w_{ij}(f_i-f_j)^2~~~(\geq 0~\forall\bm{f}\Rightarrow \mathbf{L}\succeq 0)
+\end{align}
+
+
+
+
+
+
+
+
